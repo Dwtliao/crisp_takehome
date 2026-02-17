@@ -149,6 +149,37 @@
             margin: 4px 0;
         }
 
+        .restaurant-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.85em;
+            flex: 1;
+        }
+
+        .btn-directions {
+            background: #4285f4;
+        }
+
+        .btn-directions:hover {
+            background: #3367d6;
+        }
+
+        .distance-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
         .cheese-badge {
             display: inline-block;
             background: #fff3cd;
@@ -411,26 +442,71 @@
             loadingScreen.classList.add('hidden');
             restaurantListScreen.classList.remove('hidden');
 
+            // Sort by distance (closest first)
+            const sortedProspects = [...data.prospects].sort((a, b) => a.distance_km - b.distance_km);
+
             document.getElementById('search-info').textContent =
-                `Found ${data.total} prospects within ${data.search_radius_km} km`;
+                `Found ${data.total} prospects (sorted by distance)`;
 
             const list = document.getElementById('restaurant-list');
             list.innerHTML = '';
 
-            data.prospects.forEach((restaurant, index) => {
+            sortedProspects.forEach((restaurant, index) => {
                 const item = document.createElement('li');
                 item.className = 'restaurant-item';
+
+                // Calculate walking time (average 5 km/hour)
+                const walkingMinutes = Math.round((restaurant.distance_km / 5) * 60);
+
                 item.innerHTML = `
                     <h3>${restaurant.name}</h3>
                     <p>📍 ${restaurant.address}</p>
-                    <p>📏 ${restaurant.distance_km} km away</p>
+                    <span class="distance-badge">
+                        🚶 ${walkingMinutes} min walk (${restaurant.distance_km} km)
+                    </span>
                     <span class="cheese-badge ${restaurant.match_confidence === 'high' ? 'confidence-high' : ''}">
                         🧀 ${restaurant.recommended_cheese_name}
                     </span>
+                    <div class="restaurant-actions">
+                        <button class="btn btn-small btn-directions" onclick="event.stopPropagation(); getDirections(${restaurant.latitude}, ${restaurant.longitude}, '${restaurant.name.replace(/'/g, "\\'")}')">
+                            🗺️ Directions
+                        </button>
+                        <button class="btn btn-small" onclick="event.stopPropagation();">
+                            📋 View Pitch
+                        </button>
+                    </div>
                 `;
-                item.addEventListener('click', () => showPitch(restaurant));
+
+                // Click anywhere on card except buttons = show pitch
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('button')) {
+                        showPitch(restaurant);
+                    }
+                });
+
+                // View Pitch button
+                const pitchBtn = item.querySelector('.btn:not(.btn-directions)');
+                pitchBtn.addEventListener('click', () => showPitch(restaurant));
+
                 list.appendChild(item);
             });
+        }
+
+        // Get walking directions
+        function getDirections(destLat, destLon, name) {
+            if (!currentLocation) {
+                alert('Current location not available. Using restaurant address.');
+                // Open Google Maps with just destination
+                window.open(
+                    `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLon}&travelmode=walking`,
+                    '_blank'
+                );
+                return;
+            }
+
+            // Open Google Maps with directions from current location
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${currentLocation.lat},${currentLocation.lon}&destination=${destLat},${destLon}&travelmode=walking`;
+            window.open(url, '_blank');
         }
 
         // Show sales pitch
