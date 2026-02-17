@@ -23,6 +23,18 @@ if not GEOAPIFY_API_KEY:
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 # Anthropic key is optional - will fall back to keyword filtering if not set
 
+YELP_API_KEY = os.getenv('YELP_API_KEY')
+# Yelp key is optional - used for menu data enrichment
+
+FOURSQUARE_API_KEY = os.getenv('FOURSQUARE_API_KEY')
+# Foursquare key is optional - alternative to Yelp for menu data (easier to get!)
+
+FOURSQUARE_SERVICE_API_KEY = os.getenv('FOURSQUARE_SERVICE_API_KEY')
+# Foursquare V3 Service API Key (required for V3 Places API)
+
+GOOGLE_PLACES_API_KEY = os.getenv('GOOGLE_PLACES_API_KEY')
+# Google Places API Key (reliable, paid option - $200 free credit for new accounts)
+
 # ============================================================================
 # Search Configuration
 # ============================================================================

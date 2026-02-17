@@ -1,54 +1,50 @@
 # Happy Pastures Creamery - Backend API
 
-REST API for finding high-quality restaurant prospects for artisan cheese sales.
+REST API for finding high-quality restaurant prospects and generating AI-powered sales pitches.
 
-## Setup
-
-### 1. Install Dependencies
+## Quick Start
 
 ```bash
-cd ..
-pip install -r requirements.txt
-```
+# From project root
+./start_app.sh
 
-### 2. Configure API Keys
-
-Edit `backend/config.py` or set environment variables:
-
-```bash
-export GEOAPIFY_API_KEY="your-geoapify-key"
-export ANTHROPIC_API_KEY="your-anthropic-key"
-```
-
-### 3. Run the Server
-
-```bash
-cd backend
+# Or from backend/
 python api.py
 ```
 
 Server runs on: **http://localhost:8000**
 
+---
+
 ## API Endpoints
 
 ### GET /
-Health check - returns API info
+Root endpoint - returns API info and available endpoints
 
 ### GET /health
-Health status check
+Health check
 
-### POST /api/prospects
-Find restaurant prospects near a location
-
-**Request Body:**
+**Response:**
 ```json
 {
-  "latitude": 42.0451,
-  "longitude": -87.6877,
-  "radius": 2500,
-  "use_llm": true,
-  "limit": 100
+  "status": "healthy"
 }
+```
+
+---
+
+### GET /api/prospects
+Find restaurant prospects near a location
+
+**Query Parameters:**
+- `lat` (required): Latitude
+- `lon` (required): Longitude
+- `radius` (optional): Search radius in meters (default: 2500, max: 5000)
+- `limit` (optional): Max results (default: 20, max: 50)
+
+**Example:**
+```bash
+curl "http://localhost:8000/api/prospects?lat=42.0451&lon=-87.6877&radius=2500&limit=20"
 ```
 
 **Response:**
@@ -56,156 +52,175 @@ Find restaurant prospects near a location
 {
   "prospects": [
     {
-      "name": "Trattoria Demi",
-      "address": "1571 Sherman Ave, Evanston, IL",
-      "distance": 0.45,
-      "categories": ["catering.restaurant.italian"],
-      "price_level": 3,
-      "latitude": 42.048,
-      "longitude": -87.687
+      "name": "Oceanique",
+      "address": "505 Main St, Evanston, IL",
+      "distance_km": 1.46,
+      "rating": 4.6,
+      "phone": "(847) 864-3435",
+      "latitude": 42.045,
+      "longitude": -87.688,
+      "recommended_cheese_id": "pasture_bloom",
+      "recommended_cheese_name": "Pasture Bloom Triple Crème",
+      "cheese_subtitle": "Seasonal, Bloomy-Rind",
+      "cheese_price": "$32-38/lb",
+      "match_confidence": "high"
     }
   ],
-  "total_found": 25,
-  "search_radius_km": 2.5,
-  "filtering_method": "llm"
+  "total": 24,
+  "search_center": {"lat": 42.0451, "lon": -87.6877},
+  "search_radius_km": 2.5
 }
 ```
+
+---
+
+### GET /api/pitch
+Generate detailed sales pitch for a specific restaurant
+
+**Query Parameters:**
+- `name` (required): Restaurant name
+- `lat` (required): Restaurant latitude
+- `lon` (required): Restaurant longitude
+
+**Example:**
+```bash
+curl "http://localhost:8000/api/pitch?name=Oceanique&lat=42.0451&lon=-87.6877"
+```
+
+**Response:**
+```json
+{
+  "restaurant": {
+    "name": "Oceanique",
+    "address": "505 Main St, Evanston, IL",
+    "phone": "(847) 864-3435"
+  },
+  "cheese": {
+    "id": "pasture_bloom",
+    "name": "Pasture Bloom Triple Crème",
+    "subtitle": "Seasonal, Bloomy-Rind",
+    "price_lb": "$32-38/lb"
+  },
+  "opening_hook": "Hi! I'm Hillary from Happy Pastures Creamery...",
+  "menu_pairings": [
+    {
+      "dish": "Lobster Bisque",
+      "why_it_works": "The triple crème adds rich, creamy depth..."
+    }
+  ],
+  "selling_points": [
+    "Small-batch, seasonal production",
+    "Locally sourced ingredients",
+    "Perfect for fine dining presentation"
+  ],
+  "competitive_advantage": "Unlike commodity cheese...",
+  "call_to_action": "I'd love to drop off a sample...",
+  "confidence": "high"
+}
+```
+
+---
+
+## Interactive API Documentation
+
+Visit **http://localhost:8000/docs** for:
+- Interactive Swagger UI
+- Try endpoints directly in browser
+- Full request/response schemas
+
+---
 
 ## Testing the API
 
-### Using curl:
-
-```bash
-curl -X POST http://localhost:8000/api/prospects \
-  -H "Content-Type: application/json" \
-  -d '{
-    "latitude": 42.0451,
-    "longitude": -87.6877,
-    "radius": 2500,
-    "use_llm": true
-  }'
-```
-
-### Using Python:
-
+### Python:
 ```python
 import requests
 
-response = requests.post(
+# Get prospects
+response = requests.get(
     'http://localhost:8000/api/prospects',
-    json={
-        'latitude': 42.0451,
-        'longitude': -87.6877,
-        'radius': 2500,
-        'use_llm': True
+    params={'lat': 42.0451, 'lon': -87.6877, 'limit': 20}
+)
+prospects = response.json()['prospects']
+
+# Get pitch for first restaurant
+restaurant = prospects[0]
+pitch_response = requests.get(
+    'http://localhost:8000/api/pitch',
+    params={
+        'name': restaurant['name'],
+        'lat': restaurant['latitude'],
+        'lon': restaurant['longitude']
     }
 )
-
-prospects = response.json()
-print(f"Found {prospects['total_found']} prospects")
-for restaurant in prospects['prospects'][:5]:
-    print(f"  - {restaurant['name']} ({restaurant['distance']:.2f}km)")
+pitch = pitch_response.json()
+print(pitch['opening_hook'])
 ```
 
-### Interactive API Docs:
-
-Visit **http://localhost:8000/docs** for interactive Swagger documentation
-
-## Mobile App Integration
-
-### Example React Native / Expo:
-
+### JavaScript (Frontend):
 ```javascript
-const findProspects = async (latitude, longitude) => {
-  try {
-    const response = await fetch('http://localhost:8000/api/prospects', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        latitude,
-        longitude,
-        radius: 2500,
-        use_llm: true,
-      }),
-    });
+// Get prospects near current location
+const response = await fetch(
+  `http://localhost:8000/api/prospects?lat=${lat}&lon=${lon}&limit=20`
+);
+const data = await response.json();
+const prospects = data.prospects;
 
-    const data = await response.json();
-    return data.prospects;
-  } catch (error) {
-    console.error('Error fetching prospects:', error);
-    return [];
-  }
-};
-
-// Usage
-const prospects = await findProspects(42.0451, -87.6877);
+// Get pitch for selected restaurant
+const pitchResponse = await fetch(
+  `http://localhost:8000/api/pitch?name=${restaurant.name}&lat=${restaurant.latitude}&lon=${restaurant.longitude}`
+);
+const pitch = await pitchResponse.json();
 ```
 
-### Example Flutter:
+---
 
-```dart
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
-Future<List<Restaurant>> findProspects(double lat, double lon) async {
-  final response = await http.post(
-    Uri.parse('http://localhost:8000/api/prospects'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'latitude': lat,
-      'longitude': lon,
-      'radius': 2500,
-      'use_llm': true,
-    }),
-  );
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    return (data['prospects'] as List)
-        .map((r) => Restaurant.fromJson(r))
-        .toList();
-  }
-  throw Exception('Failed to load prospects');
-}
-```
-
-## Configuration Options
+## Configuration
 
 Edit `config.py` to customize:
+- `DEFAULT_SEARCH_RADIUS`: 2500m (2.5km walking distance)
+- `MAX_SEARCH_RADIUS`: 5000m (5km)
+- `DEFAULT_RESULT_LIMIT`: 100 raw results before filtering
+- `USE_LLM_FILTERING`: True (use AI for quality filtering)
 
-- `DEFAULT_SEARCH_RADIUS`: Default walking radius (meters)
-- `MAX_SEARCH_RADIUS`: Maximum allowed radius (meters)
-- `DEFAULT_RESULT_LIMIT`: Default result limit before filtering
-- `USE_LLM_FILTERING`: Enable/disable LLM filtering by default
+---
+
+## Cost Analysis
+
+Per restaurant prospect:
+- Geoapify search: Free tier
+- LLM filtering: ~$0.001 per restaurant
+- Google Places lookup: $0.032 (only when selected)
+- Sales pitch generation: $0.020 (only when selected)
+
+**Total cost per complete pitch: ~$0.053**
+
+---
 
 ## Deployment
 
-### Production Mode:
-
+### Production with Gunicorn:
 ```bash
-# Use gunicorn for production
 gunicorn api:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
 
 ### Docker:
-
 ```dockerfile
 FROM python:3.11-slim
-
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-COPY backend/ .
-
-CMD ["gunicorn", "api:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+COPY backend/ backend/
+COPY frontend/ frontend/
+WORKDIR /app/backend
+CMD ["python", "api.py"]
 ```
+
+---
 
 ## Security Notes
 
-- 🔒 **Remove API keys before committing!**
-- 🔒 Use environment variables in production
-- 🔒 Restrict CORS origins to your mobile app domain
-- 🔒 Add authentication/rate limiting for production
+- 🔒 Never commit API keys (use .env)
+- 🔒 Restrict CORS in production
+- 🔒 Add rate limiting for public APIs
+- 🔒 Use HTTPS in production
