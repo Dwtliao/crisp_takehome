@@ -261,6 +261,78 @@ This means Hillary can visit 20 restaurants Monday, come back Friday, and her no
 
 ---
 
+## 🔄 Act 6: Pitch Refinement - Situational Adaptation
+
+### Setup:
+"Now let me show you something powerful - pitch refinement for different audiences."
+
+### What to Show:
+
+**Step 1: Navigate to Refinement Screen**
+- Scroll to bottom of original pitch
+- Click **"Refine This Pitch →"** button
+- "Notice we're on a new screen - mobile-friendly, no endless scrolling"
+
+**Step 2: Choose a Persona**
+- Show the 3 options:
+  - 🧑‍🍳 Chef / Kitchen Staff
+  - 👔 Owner / Manager
+  - 🎯 Host / Front Desk
+- Click **"🎯 Host / Front Desk"**
+
+**Step 3: Show the Refined Pitch**
+- Refined pitch generates (2-3 seconds)
+- **Point to TTS button at top:** "Notice - listen button right at the top"
+- Click **"🔊 Listen to Refined Pitch"**
+- Play it briefly
+
+**Step 4: Compare**
+- "This version is ultra-short - 30 seconds max"
+- "Respectful, just trying to get past front desk to reach the chef"
+- "Completely different tone from the original"
+
+**Step 5: Try Another Persona**
+- Click **"← Try Different Persona"**
+- Select **"🧑‍🍳 Chef / Kitchen Staff"**
+- Show refined pitch appears
+- "Now it's technical - talks about melt points, cooking techniques"
+- "Same data, completely different lens"
+
+**Step 6: Return to Original**
+- Click **"← Back to Original Pitch"**
+- "Clean navigation - we're back where we started"
+
+### Talking Points:
+
+**The Problem:**
+"Hillary might talk to the host first (gatekeeper), then the chef, then maybe the manager. Each person needs a different pitch."
+
+**The Solution:**
+"Three refinement templates - one click, instant adaptation:
+- **Gatekeeper:** 30 seconds, get past front desk
+- **Chef:** Technical, culinary peer-to-peer
+- **Manager:** Business ROI, margins, menu differentiation"
+
+**Not Regenerating:**
+"We're not generating from scratch - we're applying a 'style filter' to reshape the existing pitch. That's why it's fast and cheap."
+
+**Cost:**
+- Original pitch: $0.05
+- Each refinement: +$0.02
+- Most restaurants don't need refinement
+- Hillary only uses it when the situation requires
+
+**Mobile-First Architecture:**
+"Two separate pages - no endless scrolling on mobile:
+- Page 1: Original pitch, TTS, voice notes
+- Page 2: Refinement screen, persona selection
+- Clean navigation, focused purpose"
+
+### Key Message:
+"This is situational intelligence. Hillary walks up, assesses who she's talking to, and pulls out the right version of the pitch. Real-world flexibility built into the system."
+
+---
+
 ## 🎯 Other Features to Mention (Quick Hits)
 
 ### Walking Directions
@@ -330,10 +402,11 @@ Use this as a script outline:
 - [ ] **TTS Demo** - Play audio, show speed controls (1 min)
 - [ ] **Voice Notes** - Record 2 notes with realistic content (1 min)
 - [ ] **Persistence Test** - Restart server, show notes survived (1 min)
+- [ ] **Pitch Refinement** - Navigate to page 2, show 2 personas, TTS (2 min)
 - [ ] **Quick Features** - Walking directions, rejection memory (30 sec)
 - [ ] **Closing** - ROI, technical stack, roadmap (1 min)
 
-**Total: ~10 minutes**
+**Total: ~12 minutes**
 
 ---
 

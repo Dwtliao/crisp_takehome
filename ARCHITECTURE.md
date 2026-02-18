@@ -57,6 +57,27 @@ This system helps Hillary sell $30-50/lb artisan cheese by finding high-probabil
 - **Asian cuisine warning** - Pre-pitch detection saves $0.05/restaurant on incompatible prospects
 - **Override option** - "Generate pitch anyway" button respects Hillary's judgment
 - **Pre-set business rules** - Filters for $20+ entrees, upscale signals, cheese-friendly cuisines
+- **Text-to-speech** - Listen to pitches hands-free while walking (browser built-in, $0 cost)
+- **Voice notes** - Dictate visit outcomes, saved permanently in localStorage
+- **Pitch refinement** - 3 persona-based adaptations (Chef, Manager, Gatekeeper)
+
+### Tradeoff: 2-Page Architecture for Mobile UX
+**Chose:** Separate screens for original pitch and refinement
+**Sacrificed:** Single-page "everything at once" view
+**Result:** Mobile-friendly, no endless scrolling, focused purpose per screen
+
+**Why this matters:**
+- Mobile screens are small - separate pages prevent scroll fatigue
+- Each page has clear purpose: view pitch vs refine pitch
+- Better state management (original TTS vs refined TTS don't conflict)
+- Explicit navigation creates intentional workflow
+- Fixes UI glitches from trying to show everything on one page
+
+**Implementation:**
+- Page 1 (Pitch Screen): Original pitch, TTS controls, voice notes, "Refine This Pitch" CTA
+- Page 2 (Refinement Screen): Restaurant summary, 3 persona buttons, refined pitch with TTS
+- Navigation: Simple show/hide with scroll-to-top on transition
+- Cost: ~$0.02 per refinement (transforms existing pitch, no data re-fetch)
 
 ---
 

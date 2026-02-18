@@ -177,6 +177,76 @@ Found 18 prospects (sorted by distance) • 6 filtered, 3 previously rejected
 
 ---
 
+## 🔄 Pitch Refinement: Adaptive Messaging
+
+**NEW Feature:** Transform pitches for different audiences with one click
+
+**Location:** 2-page architecture (Page 1: Original → Page 2: Refinement)
+
+### How It Works
+After viewing the original pitch, Hillary can refine it for specific audiences:
+
+**🧑‍🍳 Chef/Kitchen Staff Refinement**
+- **Tone:** Technical, peer-to-peer, culinary-focused
+- **Content:** Cooking techniques, melt points, flavor chemistry
+- **Length:** ~60 seconds
+- **Example:** "Hey Chef, our Pasture Bloom melts at 90°F and emulsifies beautifully into beurre blanc..."
+
+**👔 Owner/Manager Refinement**
+- **Tone:** Business-focused, ROI-driven
+- **Content:** Margins, menu differentiation, local sourcing value
+- **Length:** ~90 seconds
+- **Example:** "Local sourcing, $40/lb wholesale, high perceived value, upsell potential..."
+
+**🎯 Host/Front Desk Refinement**
+- **Tone:** Ultra-brief, respectful
+- **Content:** Quick credibility, simple ask
+- **Length:** ~30 seconds
+- **Example:** "Hi, I work with Chef Sarah at [nearby restaurant]. When's good to drop off a sample?"
+
+### 2-Page Mobile Architecture
+**Page 1: Original Pitch**
+- Full AI-generated pitch
+- TTS controls at top
+- Voice notes section
+- "Refine This Pitch" button at bottom
+
+**Page 2: Refinement Screen**
+- Restaurant summary
+- 3 persona buttons
+- Refined pitch with TTS at top
+- "Try Different Persona" and "Back to Original" navigation
+
+### Refinement Prompt Templates
+Each persona button applies a "style filter" to reshape the existing pitch:
+- **Not regenerating from scratch** - Transforms existing content
+- **Preset instructions** - Proven refinement strategies
+- **One-click operation** - No complex UI
+- **Reversible** - Easy to try different personas
+
+### Cost
+- **Initial pitch:** ~$0.05 (Google Places + Claude)
+- **Each refinement:** +$0.02 (Claude only, no new data lookup)
+- **Typical usage:** Most restaurants don't need refinement
+
+### Why This Matters
+**Situational Adaptability:**
+- Talking to host first? Use gatekeeper pitch
+- Meeting with chef? Use technical version
+- Pitching to owner? Use business-focused version
+
+**Time Efficiency:**
+- No manual rewriting needed
+- Instant adaptation to situation
+- TTS for both original and refined versions
+
+**Mobile-First UX:**
+- No endless scrolling
+- Clear navigation between pages
+- Each screen has focused purpose
+
+---
+
 ## 💡 Why This Matters - Business Value
 
 ### Time Saved = Money Earned

@@ -49,6 +49,39 @@ This system does all five automatically.
 
 ---
 
+## 🔄 Pitch Refinement: Persona-Based Adaptation
+
+### Multiple Pitch Versions for Different Audiences
+After generating the initial pitch, refine it for specific situations:
+
+**🧑‍🍳 For Chef/Kitchen Staff**
+- Technical, culinary-focused language
+- Cooking techniques, melt points, flavor chemistry
+- Peer-to-peer professional tone
+- ~60 seconds spoken
+
+**👔 For Owner/Manager**
+- Business ROI and margin focus
+- Menu differentiation and competitive advantage
+- Local sourcing story
+- ~90 seconds with concrete numbers
+
+**🎯 For Host/Front Desk**
+- Ultra-brief elevator pitch (~30 seconds)
+- Get past gatekeeper to reach decision maker
+- Respectful, quick credibility-building
+- Simple ask with alternative
+
+### 2-Page Mobile-First Architecture
+- **Page 1:** Original pitch with TTS and voice notes
+- **Page 2:** Refinement screen with persona selection
+- Clean navigation, no endless scrolling
+- Each page has focused purpose
+
+**Cost:** ~$0.02 per refinement (Claude only, no new data lookup)
+
+---
+
 ## How to Run
 
 See GOOGLE_PLACES_SETUP.md for complete setup instructions.
@@ -133,4 +166,5 @@ Quick summary:
 - 🎯 Pre-set business rules (fine dining, $40/lb cheese compatible)
 - 🔊 Text-to-speech (listen to pitches hands-free via earbuds)
 - 🎤 Voice notes (dictate visit outcomes, saved permanently in localStorage)
+- 🔄 Pitch refinement (3 personas: Chef, Manager, Gatekeeper with separate TTS)
 
