@@ -248,6 +248,189 @@
             margin-bottom: 20px;
         }
 
+        /* TTS Controls */
+        .tts-controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f7f0;
+            border-radius: 8px;
+            border: 2px solid #2c5f2d;
+        }
+
+        .btn-tts {
+            width: 100%;
+            background: #2c5f2d;
+            color: white;
+            font-size: 1.1em;
+            padding: 15px;
+        }
+
+        .btn-tts:hover {
+            background: #1e4620;
+        }
+
+        .tts-player {
+            margin-top: 15px;
+        }
+
+        .btn-tts-control {
+            margin: 5px;
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+
+        .tts-speed {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tts-speed label {
+            font-weight: 600;
+            color: #2c5f2d;
+        }
+
+        .speed-btn {
+            padding: 6px 12px;
+            border: 2px solid #2c5f2d;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .speed-btn:hover {
+            background: #e8f5e8;
+        }
+
+        .speed-btn.active {
+            background: #2c5f2d;
+            color: white;
+        }
+
+        .tts-status {
+            margin-top: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+        .tts-status.playing {
+            color: #2c5f2d;
+            font-weight: 600;
+        }
+
+        /* Voice Notes */
+        .voice-notes-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #2c5f2d;
+        }
+
+        .btn-voice-note {
+            width: 100%;
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            font-size: 1.1em;
+        }
+
+        .btn-voice-note:hover {
+            background: #ff5252;
+        }
+
+        .recording-ui {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border: 2px solid #ff6b6b;
+            border-radius: 8px;
+        }
+
+        .recording-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #ff6b6b;
+        }
+
+        .recording-dot {
+            width: 12px;
+            height: 12px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .live-transcript {
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            min-height: 60px;
+            margin-bottom: 10px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .note-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .note-text {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .note-delete {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+
+        .note-delete:hover {
+            background: #ff5252;
+        }
+
+        .no-notes {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
         .error {
             background: #f8d7da;
             color: #721c24;
@@ -351,6 +534,54 @@
         <!-- Pitch Detail Screen -->
         <div id="pitch-screen" class="section pitch-view">
             <button id="back-btn" class="btn back-btn">← Back to List</button>
+
+            <!-- TTS Controls -->
+            <div id="tts-controls" class="tts-controls hidden">
+                <button id="tts-play-btn" class="btn btn-tts">
+                    🔊 Listen to Pitch
+                </button>
+                <div id="tts-player" class="tts-player hidden">
+                    <button id="tts-pause-btn" class="btn btn-small btn-tts-control">⏸️ Pause</button>
+                    <button id="tts-stop-btn" class="btn btn-small btn-tts-control">⏹️ Stop</button>
+                    <button id="tts-replay-btn" class="btn btn-small btn-tts-control">🔁 Replay</button>
+                    <div class="tts-speed">
+                        <label>Speed:</label>
+                        <button class="speed-btn" data-speed="0.75">0.75x</button>
+                        <button class="speed-btn active" data-speed="1">1x</button>
+                        <button class="speed-btn" data-speed="1.25">1.25x</button>
+                        <button class="speed-btn" data-speed="1.5">1.5x</button>
+                    </div>
+                    <div id="tts-status" class="tts-status">Ready to play</div>
+                </div>
+            </div>
+
+            <!-- Voice Notes Section -->
+            <div id="voice-notes-section" class="voice-notes-section hidden">
+                <h3 style="color: #2c5f2d; margin-bottom: 15px;">📝 Notes</h3>
+
+                <!-- Existing notes display -->
+                <div id="existing-notes"></div>
+
+                <!-- Add new note -->
+                <button id="add-note-btn" class="btn btn-voice-note">
+                    🎤 Add Voice Note
+                </button>
+
+                <!-- Recording UI -->
+                <div id="recording-ui" class="recording-ui hidden">
+                    <div class="recording-indicator">
+                        <span class="recording-dot"></span>
+                        <span>Recording...</span>
+                    </div>
+                    <div id="live-transcript" class="live-transcript">
+                        Listening...
+                    </div>
+                    <button id="stop-recording-btn" class="btn btn-small">
+                        ⏹️ Stop Recording
+                    </button>
+                </div>
+            </div>
+
             <div id="pitch-content"></div>
             <div id="pitch-loading" class="loading hidden">
                 <div class="spinner"></div>
@@ -388,6 +619,18 @@
         // Rejected Restaurants Learning System
         const REJECTED_RESTAURANTS_KEY = 'happy_pastures_rejected_restaurants';
         const MAX_REJECTED_ITEMS = 200; // Store up to 200 rejections
+
+        // Text-to-Speech State
+        let ttsUtterance = null;
+        let ttsCurrentPitch = null;
+        let ttsSpeed = 1.0;
+        let ttsIsPlaying = false;
+
+        // Voice Notes State
+        const VOICE_NOTES_KEY = 'happy_pastures_voice_notes';
+        let currentRestaurantForNotes = null;
+        let voiceRecognition = null;
+        let isRecording = false;
 
         function saveAddressToHistory(address) {
             let history = JSON.parse(localStorage.getItem(ADDRESS_HISTORY_KEY) || '[]');
@@ -837,7 +1080,7 @@
                 if (pitch.warning === 'asian_cuisine_detected') {
                     displayAsianCuisineWarning(pitch, restaurant);
                 } else {
-                    displayPitch(pitch);
+                    displayPitch(pitch, restaurant); // Pass original restaurant with lat/lon
                 }
             } catch (error) {
                 pitchLoading.classList.add('hidden');
@@ -895,6 +1138,11 @@
                     ℹ️ This restaurant was flagged before generating an expensive sales pitch to save time and API costs.
                 </p>
             `;
+
+            // Hide TTS controls and voice notes for warning screen (no pitch to read)
+            document.getElementById('tts-controls').classList.add('hidden');
+            document.getElementById('voice-notes-section').classList.add('hidden');
+            stopTTS();
         }
 
         function rejectAndReturn(name, lat, lon) {
@@ -935,7 +1183,15 @@
 
                 const pitch = await response.json();
                 pitchLoading.classList.add('hidden');
-                displayPitch(pitch);
+
+                // Reconstruct restaurant object for voice notes
+                const restaurant = {
+                    name: name,
+                    latitude: lat,
+                    longitude: lon,
+                    address: pitch.restaurant.address
+                };
+                displayPitch(pitch, restaurant);
             } catch (error) {
                 pitchLoading.classList.add('hidden');
                 pitchContent.innerHTML = '<div class="error">Failed to generate pitch. Please try again.</div>';
@@ -943,7 +1199,7 @@
         }
 
         // Display pitch
-        function displayPitch(pitch) {
+        function displayPitch(pitch, restaurant) {
             const pitchContent = document.getElementById('pitch-content');
 
             pitchContent.innerHTML = `
@@ -991,6 +1247,12 @@
                     <p>${pitch.call_to_action}</p>
                 </div>
             `;
+
+            // Initialize TTS for this pitch
+            initializeTTS(pitch);
+
+            // Initialize voice notes for this restaurant
+            initializeVoiceNotes(restaurant);
         }
 
         // Back button (from pitch to list)
@@ -1014,6 +1276,390 @@
             addressInput.value = '';
             showError('');
         });
+
+        // ===== TEXT-TO-SPEECH FUNCTIONS =====
+
+        function initializeTTS(pitchData) {
+            ttsCurrentPitch = pitchData;
+
+            // Show TTS controls
+            document.getElementById('tts-controls').classList.remove('hidden');
+
+            // Reset state
+            stopTTS();
+        }
+
+        function buildPitchText(pitch) {
+            // Build complete pitch text for TTS
+            let text = `Sales pitch for ${pitch.restaurant.name}. `;
+            text += `${pitch.opening_hook}. `;
+
+            if (pitch.menu_pairings && pitch.menu_pairings.length > 0) {
+                text += `Menu pairings: `;
+                pitch.menu_pairings.forEach(p => {
+                    text += `${p.dish}. ${p.why_it_works}. `;
+                });
+            }
+
+            if (pitch.selling_points && pitch.selling_points.length > 0) {
+                text += `Key selling points: `;
+                pitch.selling_points.forEach(point => {
+                    text += `${point}. `;
+                });
+            }
+
+            if (pitch.competitive_advantage) {
+                text += `Competitive advantage: ${pitch.competitive_advantage}. `;
+            }
+
+            if (pitch.call_to_action) {
+                text += `Call to action: ${pitch.call_to_action}`;
+            }
+
+            return text;
+        }
+
+        function playTTS() {
+            if (!ttsCurrentPitch) return;
+
+            // Stop any existing speech
+            window.speechSynthesis.cancel();
+
+            // Build pitch text
+            const pitchText = buildPitchText(ttsCurrentPitch);
+
+            // Create utterance
+            ttsUtterance = new SpeechSynthesisUtterance(pitchText);
+            ttsUtterance.rate = ttsSpeed;
+            ttsUtterance.pitch = 1.0;
+            ttsUtterance.volume = 1.0;
+
+            // Event handlers
+            ttsUtterance.onstart = () => {
+                ttsIsPlaying = true;
+                updateTTSUI('playing');
+            };
+
+            ttsUtterance.onend = () => {
+                ttsIsPlaying = false;
+                updateTTSUI('finished');
+            };
+
+            ttsUtterance.onerror = (event) => {
+                console.error('TTS Error:', event);
+                ttsIsPlaying = false;
+                updateTTSUI('error');
+            };
+
+            // Speak
+            window.speechSynthesis.speak(ttsUtterance);
+        }
+
+        function pauseTTS() {
+            if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+                window.speechSynthesis.pause();
+                ttsIsPlaying = false;
+                updateTTSUI('paused');
+            } else if (window.speechSynthesis.paused) {
+                window.speechSynthesis.resume();
+                ttsIsPlaying = true;
+                updateTTSUI('playing');
+            }
+        }
+
+        function stopTTS() {
+            window.speechSynthesis.cancel();
+            ttsIsPlaying = false;
+            updateTTSUI('stopped');
+        }
+
+        function replayTTS() {
+            stopTTS();
+            setTimeout(() => playTTS(), 100);
+        }
+
+        function setTTSSpeed(speed) {
+            ttsSpeed = parseFloat(speed);
+
+            // Update active button
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // If currently playing, restart with new speed
+            if (ttsIsPlaying) {
+                replayTTS();
+            }
+        }
+
+        function updateTTSUI(state) {
+            const status = document.getElementById('tts-status');
+            const playBtn = document.getElementById('tts-play-btn');
+            const pauseBtn = document.getElementById('tts-pause-btn');
+            const player = document.getElementById('tts-player');
+
+            switch(state) {
+                case 'playing':
+                    status.textContent = '🔊 Playing pitch...';
+                    status.className = 'tts-status playing';
+                    playBtn.classList.add('hidden');
+                    player.classList.remove('hidden');
+                    pauseBtn.textContent = '⏸️ Pause';
+                    break;
+
+                case 'paused':
+                    status.textContent = '⏸️ Paused';
+                    status.className = 'tts-status';
+                    pauseBtn.textContent = '▶️ Resume';
+                    break;
+
+                case 'stopped':
+                    status.textContent = 'Ready to play';
+                    status.className = 'tts-status';
+                    playBtn.classList.remove('hidden');
+                    player.classList.add('hidden');
+                    pauseBtn.textContent = '⏸️ Pause';
+                    break;
+
+                case 'finished':
+                    status.textContent = '✅ Finished! Click replay to hear again';
+                    status.className = 'tts-status';
+                    pauseBtn.textContent = '⏸️ Pause';
+                    break;
+
+                case 'error':
+                    status.textContent = '❌ Error playing audio';
+                    status.className = 'tts-status';
+                    break;
+            }
+        }
+
+        // TTS Event Listeners
+        document.getElementById('tts-play-btn').addEventListener('click', playTTS);
+        document.getElementById('tts-pause-btn').addEventListener('click', pauseTTS);
+        document.getElementById('tts-stop-btn').addEventListener('click', stopTTS);
+        document.getElementById('tts-replay-btn').addEventListener('click', replayTTS);
+
+        // Speed buttons
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const speed = e.target.getAttribute('data-speed');
+                setTTSSpeed(speed);
+            });
+        });
+
+        // Stop TTS when leaving pitch screen
+        document.getElementById('back-btn').addEventListener('click', () => {
+            stopTTS();
+        });
+
+        // ===== END TTS FUNCTIONS =====
+
+        // ===== VOICE NOTES FUNCTIONS =====
+
+        function initializeVoiceNotes(restaurant) {
+            currentRestaurantForNotes = restaurant;
+
+            // Show voice notes section
+            document.getElementById('voice-notes-section').classList.remove('hidden');
+
+            // Load and display existing notes
+            displayExistingNotes(restaurant);
+
+            // Initialize speech recognition if available
+            initializeSpeechRecognition();
+        }
+
+        function initializeSpeechRecognition() {
+            // Check browser support
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                console.warn('Speech recognition not supported in this browser');
+                document.getElementById('add-note-btn').disabled = true;
+                document.getElementById('add-note-btn').textContent = '🎤 Voice notes not supported in this browser';
+                return;
+            }
+
+            voiceRecognition = new SpeechRecognition();
+            voiceRecognition.continuous = false;
+            voiceRecognition.interimResults = true;
+            voiceRecognition.lang = 'en-US';
+
+            voiceRecognition.onstart = () => {
+                console.log('Voice recognition started');
+                isRecording = true;
+            };
+
+            voiceRecognition.onresult = (event) => {
+                const transcript = Array.from(event.results)
+                    .map(result => result[0].transcript)
+                    .join('');
+
+                // Update live transcript
+                document.getElementById('live-transcript').textContent = transcript || 'Listening...';
+            };
+
+            voiceRecognition.onend = () => {
+                console.log('Voice recognition ended');
+                isRecording = false;
+
+                // Get final transcript
+                const transcript = document.getElementById('live-transcript').textContent;
+
+                if (transcript && transcript !== 'Listening...') {
+                    // Save the note
+                    saveVoiceNote(currentRestaurantForNotes, transcript);
+                }
+
+                // Hide recording UI
+                document.getElementById('recording-ui').classList.add('hidden');
+                document.getElementById('add-note-btn').classList.remove('hidden');
+            };
+
+            voiceRecognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                isRecording = false;
+                document.getElementById('recording-ui').classList.add('hidden');
+                document.getElementById('add-note-btn').classList.remove('hidden');
+
+                if (event.error === 'not-allowed') {
+                    alert('Microphone access denied. Please allow microphone access in your browser settings.');
+                }
+            };
+        }
+
+        function startVoiceRecording() {
+            if (!voiceRecognition) {
+                alert('Voice recognition not available in this browser. Try Chrome or Edge.');
+                return;
+            }
+
+            // Show recording UI
+            document.getElementById('add-note-btn').classList.add('hidden');
+            document.getElementById('recording-ui').classList.remove('hidden');
+            document.getElementById('live-transcript').textContent = 'Listening...';
+
+            // Start recognition
+            try {
+                voiceRecognition.start();
+            } catch (error) {
+                console.error('Error starting recognition:', error);
+                alert('Could not start voice recognition. Please try again.');
+                document.getElementById('recording-ui').classList.add('hidden');
+                document.getElementById('add-note-btn').classList.remove('hidden');
+            }
+        }
+
+        function stopVoiceRecording() {
+            if (voiceRecognition && isRecording) {
+                voiceRecognition.stop();
+            }
+        }
+
+        function saveVoiceNote(restaurant, noteText) {
+            // Load all notes from localStorage
+            const allNotes = JSON.parse(localStorage.getItem(VOICE_NOTES_KEY) || '{}');
+
+            // Create unique key for this restaurant
+            const key = `${restaurant.name.toLowerCase().trim()}_${restaurant.latitude.toFixed(2)}_${restaurant.longitude.toFixed(2)}`;
+
+            // Initialize restaurant notes if doesn't exist
+            if (!allNotes[key]) {
+                allNotes[key] = {
+                    restaurant_name: restaurant.name,
+                    latitude: restaurant.latitude,
+                    longitude: restaurant.longitude,
+                    notes: []
+                };
+            }
+
+            // Add new note
+            const noteId = `note_${Date.now()}`;
+            allNotes[key].notes.unshift({ // Add to beginning (most recent first)
+                id: noteId,
+                text: noteText.trim(),
+                timestamp: new Date().toISOString(),
+                created_via: 'voice'
+            });
+
+            allNotes[key].last_updated = new Date().toISOString();
+
+            // Save back to localStorage
+            localStorage.setItem(VOICE_NOTES_KEY, JSON.stringify(allNotes));
+
+            console.log('Voice note saved:', noteText);
+
+            // Refresh display
+            displayExistingNotes(restaurant);
+        }
+
+        function loadNotesForRestaurant(restaurant) {
+            const allNotes = JSON.parse(localStorage.getItem(VOICE_NOTES_KEY) || '{}');
+            const key = `${restaurant.name.toLowerCase().trim()}_${restaurant.latitude.toFixed(2)}_${restaurant.longitude.toFixed(2)}`;
+
+            return allNotes[key] || null;
+        }
+
+        function displayExistingNotes(restaurant) {
+            const notesData = loadNotesForRestaurant(restaurant);
+            const container = document.getElementById('existing-notes');
+
+            if (!notesData || notesData.notes.length === 0) {
+                container.innerHTML = '<div class="no-notes">No notes yet. Add your first note after visiting this restaurant!</div>';
+                return;
+            }
+
+            let html = '';
+            notesData.notes.forEach(note => {
+                const date = new Date(note.timestamp);
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+
+                html += `
+                    <div class="note-item">
+                        <div class="note-header">
+                            <span>🎤 ${formattedDate}</span>
+                            <button class="note-delete" onclick="deleteNote('${note.id}', '${restaurant.name}', ${restaurant.latitude}, ${restaurant.longitude})">
+                                Delete
+                            </button>
+                        </div>
+                        <div class="note-text">${note.text}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function deleteNote(noteId, restaurantName, lat, lon) {
+            if (!confirm('Delete this note?')) return;
+
+            const allNotes = JSON.parse(localStorage.getItem(VOICE_NOTES_KEY) || '{}');
+            const key = `${restaurantName.toLowerCase().trim()}_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+
+            if (allNotes[key]) {
+                allNotes[key].notes = allNotes[key].notes.filter(note => note.id !== noteId);
+                allNotes[key].last_updated = new Date().toISOString();
+
+                localStorage.setItem(VOICE_NOTES_KEY, JSON.stringify(allNotes));
+
+                // Refresh display
+                displayExistingNotes({ name: restaurantName, latitude: lat, longitude: lon });
+            }
+        }
+
+        // Voice notes event listeners
+        document.getElementById('add-note-btn').addEventListener('click', startVoiceRecording);
+        document.getElementById('stop-recording-btn').addEventListener('click', stopVoiceRecording);
+
+        // ===== END VOICE NOTES FUNCTIONS =====
 
         // Error display
         function showError(message) {
