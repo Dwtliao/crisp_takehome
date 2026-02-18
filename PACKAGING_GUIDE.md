@@ -7,7 +7,9 @@
 ./package_demo.sh
 ```
 
-This creates a timestamped zip file like: `happy_pastures_demo_20260217_143022.zip`
+This creates: `happy_pastures_demo.zip`
+
+**Note:** Running the script again will overwrite the existing zip file.
 
 ---
 
@@ -37,16 +39,16 @@ This creates a timestamped zip file like: `happy_pastures_demo_20260217_143022.z
 ### Step 1: Transfer the Zip File
 ```bash
 # Copy via USB, AirDrop, or scp
-scp happy_pastures_demo_*.zip user@other-mac:~/Downloads/
+scp happy_pastures_demo.zip user@other-mac:~/Downloads/
 ```
 
 ### Step 2: On the New Mac
 ```bash
 # Unzip
-unzip happy_pastures_demo_20260217_143022.zip
+unzip happy_pastures_demo.zip
 
 # Navigate into directory
-cd happy_pastures_demo_20260217_143022
+cd happy_pastures_demo
 
 # Run automated setup (installs dependencies)
 ./setup_demo.sh
@@ -65,7 +67,7 @@ Navigate to: **http://localhost:8000/app**
 After unzipping, you'll see:
 
 ```
-happy_pastures_demo_20260217_143022/
+happy_pastures_demo/
 ├── backend/                      # Backend API
 │   ├── api.py
 │   ├── geoapify_client.py
@@ -155,10 +157,10 @@ Before sharing, test on the same machine:
 ./package_demo.sh
 
 # Move to Desktop and test
-cp happy_pastures_demo_*.zip ~/Desktop/
+cp happy_pastures_demo.zip ~/Desktop/
 cd ~/Desktop
-unzip happy_pastures_demo_*.zip
-cd happy_pastures_demo_*
+unzip happy_pastures_demo.zip
+cd happy_pastures_demo
 ./setup_demo.sh
 ./start_app.sh
 ```
@@ -167,17 +169,17 @@ cd happy_pastures_demo_*
 
 ## 💡 Tips
 
-### Creating Multiple Packages
-Each run creates a new timestamped file, so you won't overwrite previous packages:
+### Creating Backups
+Each run overwrites the previous `happy_pastures_demo.zip`. To keep multiple versions:
 ```bash
-./package_demo.sh  # Creates happy_pastures_demo_20260217_143022.zip
-./package_demo.sh  # Creates happy_pastures_demo_20260217_143045.zip
+./package_demo.sh
+mv happy_pastures_demo.zip happy_pastures_demo_backup_$(date +%Y%m%d).zip
 ```
 
 ### Custom Package Name
 Edit `package_demo.sh` and change `DEMO_NAME`:
 ```bash
-DEMO_NAME="interview_demo"  # Creates interview_demo_TIMESTAMP.zip
+DEMO_NAME="interview_demo"  # Creates interview_demo.zip
 ```
 
 ### Packaging Without API Keys
