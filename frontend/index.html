@@ -586,6 +586,55 @@
             margin: 0;
         }
 
+        /* Micro-Refinements */
+        .micro-refinements {
+            padding: 20px;
+            background: #f8fbff;
+            border-radius: 8px;
+            border: 2px dashed #4a90e2;
+        }
+
+        .micro-refinements h4 {
+            margin-bottom: 15px;
+        }
+
+        .micro-refinement-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-micro-refine {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px;
+            background: white;
+            border: 2px solid #4a90e2;
+            border-radius: 6px;
+            color: #4a90e2;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-micro-refine:hover {
+            background: #4a90e2;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-micro-refine:active {
+            transform: translateY(0);
+        }
+
+        /* Save Pitch Section */
+        .save-pitch-section {
+            padding: 20px;
+            background: #f0f7f0;
+            border-radius: 8px;
+        }
+
         .error {
             background: #f8d7da;
             color: #721c24;
@@ -741,6 +790,12 @@
 
             <!-- Refine Pitch CTA -->
             <div id="refine-pitch-cta" class="refine-pitch-cta hidden">
+                <!-- Saved Pitch Notice -->
+                <div id="saved-pitch-notice" class="hidden" style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2c5f2d;">
+                    <strong>💾 Saved Pitches Available!</strong>
+                    <p id="saved-pitch-list" style="margin: 8px 0 0 0; color: #666; font-size: 0.9em;"></p>
+                </div>
+
                 <h3>🔄 Want to Refine This Pitch?</h3>
                 <p style="color: #666; margin-bottom: 15px;">
                     Get a version tailored to who you'll be talking to (Chef, Manager, or Front Desk)
@@ -827,6 +882,38 @@
                 </div>
 
                 <div id="refined-pitch-content" class="refined-pitch-content"></div>
+
+                <!-- Micro-Refinements -->
+                <div id="micro-refinements" class="micro-refinements" style="margin-top: 30px;">
+                    <h4 style="color: #4a90e2; margin-bottom: 15px;">✨ Fine-tune This Pitch:</h4>
+                    <div class="micro-refinement-buttons">
+                        <button class="btn-micro-refine" data-type="shorten">
+                            📏 Shorten
+                        </button>
+                        <button class="btn-micro-refine" data-type="expand">
+                            📖 Expand
+                        </button>
+                        <button class="btn-micro-refine" data-type="casual">
+                            💬 More Casual
+                        </button>
+                        <button class="btn-micro-refine" data-type="formal">
+                            🎩 More Formal
+                        </button>
+                        <button class="btn-micro-refine" data-type="strong_opener">
+                            ⚡ Strong Opener
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Save Pitch -->
+                <div id="save-pitch-section" class="save-pitch-section" style="margin-top: 30px; text-align: center;">
+                    <button id="save-pitch-btn" class="btn" style="background: #2c5f2d; color: white; padding: 15px; font-size: 1.1em;">
+                        💾 Save This Version
+                    </button>
+                    <div id="saved-indicator" class="hidden" style="color: #2c5f2d; margin-top: 10px; font-weight: 600;">
+                        ✅ Pitch saved! Will load automatically on next visit
+                    </div>
+                </div>
 
                 <!-- Try Another Refinement -->
                 <div style="margin-top: 30px; text-align: center;">
@@ -1526,6 +1613,9 @@
             const ctaSection = document.getElementById('refine-pitch-cta');
             ctaSection.classList.remove('hidden');
 
+            // Check for saved pitches and show notice
+            checkAndShowSavedPitchNotice(restaurant);
+
             // Set up navigation to refinement screen
             const goToRefinementBtn = document.getElementById('go-to-refinement-btn');
             // Remove old listener
@@ -1536,6 +1626,34 @@
             document.getElementById('go-to-refinement-btn').addEventListener('click', () => {
                 navigateToRefinementScreen();
             });
+        }
+
+        function checkAndShowSavedPitchNotice(restaurant) {
+            const allSavedPitches = JSON.parse(localStorage.getItem(SAVED_PITCHES_KEY) || '{}');
+            const baseKey = `${restaurant.name.toLowerCase().trim()}_${restaurant.latitude.toFixed(2)}_${restaurant.longitude.toFixed(2)}`;
+
+            const savedPersonas = [];
+            ['chef', 'manager', 'gatekeeper'].forEach(persona => {
+                const key = `${baseKey}_${persona}`;
+                if (allSavedPitches[key]) {
+                    savedPersonas.push({
+                        persona: persona,
+                        label: getPersonaLabel(persona),
+                        savedAt: allSavedPitches[key].saved_at
+                    });
+                }
+            });
+
+            const noticeDiv = document.getElementById('saved-pitch-notice');
+            const listDiv = document.getElementById('saved-pitch-list');
+
+            if (savedPersonas.length > 0) {
+                const personaLabels = savedPersonas.map(p => p.label).join(', ');
+                listDiv.textContent = `You have saved pitches for: ${personaLabels}. Click "Refine This Pitch" to view them.`;
+                noticeDiv.classList.remove('hidden');
+            } else {
+                noticeDiv.classList.add('hidden');
+            }
         }
 
         function navigateToRefinementScreen() {
@@ -1563,6 +1681,9 @@
 
             // Set up back button
             setupRefinementBackButton();
+
+            // Check for saved pitches
+            checkForSavedPitch();
 
             // Scroll to top
             window.scrollTo(0, 0);
@@ -1667,6 +1788,12 @@
                 // Initialize TTS for refined pitch
                 initializeRefinedTTS(refinedPitch.refined_text);
 
+                // Setup micro-refinement buttons
+                setupMicroRefinementButtons(persona);
+
+                // Setup save button
+                setupSavePitchButton(persona, refinedPitch.refined_text);
+
                 // Scroll to refined pitch
                 refinedDisplay.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -1705,6 +1832,252 @@
             };
             return labels[persona] || persona;
         }
+
+        // ===== MICRO-REFINEMENT FUNCTIONS =====
+
+        let currentPersona = null;
+        let currentRefinedText = null;
+
+        function setupMicroRefinementButtons(persona) {
+            currentPersona = persona;
+
+            // Get all micro-refine buttons
+            document.querySelectorAll('.btn-micro-refine').forEach(btn => {
+                // Remove old listeners
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+            });
+
+            // Add new listeners
+            document.querySelectorAll('.btn-micro-refine').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const microType = btn.dataset.type;
+                    await applyMicroRefinement(microType);
+                });
+            });
+        }
+
+        async function applyMicroRefinement(microType) {
+            const refinedContent = document.getElementById('refined-pitch-content');
+            const currentText = refinedContent.textContent;
+
+            // Show loading state
+            refinedContent.innerHTML = '<div class="loading"><div class="spinner"></div><p>Applying refinement...</p></div>';
+
+            try {
+                // Call backend API
+                const response = await fetch(`${API_BASE}/api/pitch/micro-refine`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        current_pitch: currentText,
+                        micro_type: microType,
+                        restaurant_name: currentRestaurantData.name
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to apply micro-refinement');
+                }
+
+                const result = await response.json();
+
+                // Update with micro-refined text
+                refinedContent.innerHTML = result.refined_text;
+                currentRefinedText = result.refined_text;
+
+                // Update TTS with new text
+                initializeRefinedTTS(result.refined_text);
+
+                // Show success briefly
+                const microButtons = document.querySelector('.micro-refinements');
+                microButtons.style.borderColor = '#2c5f2d';
+                setTimeout(() => {
+                    microButtons.style.borderColor = '#4a90e2';
+                }, 1000);
+
+            } catch (error) {
+                console.error('Micro-refinement error:', error);
+                refinedContent.innerHTML = '<div class="error">Failed to apply refinement. Please try again.</div>';
+                // Restore original text after error
+                setTimeout(() => {
+                    refinedContent.textContent = currentText;
+                }, 2000);
+            }
+        }
+
+        // ===== SAVE PITCH FUNCTIONS =====
+
+        const SAVED_PITCHES_KEY = 'happy_pastures_saved_pitches';
+
+        function setupSavePitchButton(persona, pitchText) {
+            currentRefinedText = pitchText;
+
+            const saveBtn = document.getElementById('save-pitch-btn');
+            const savedIndicator = document.getElementById('saved-indicator');
+
+            // Check if already saved
+            const savedKey = getSavedPitchKey(currentRestaurantData, persona);
+            const allSavedPitches = JSON.parse(localStorage.getItem(SAVED_PITCHES_KEY) || '{}');
+
+            if (allSavedPitches[savedKey]) {
+                saveBtn.textContent = '✅ Pitch Saved';
+                saveBtn.style.background = '#666';
+                savedIndicator.classList.remove('hidden');
+            } else {
+                saveBtn.textContent = '💾 Save This Version';
+                saveBtn.style.background = '#2c5f2d';
+                savedIndicator.classList.add('hidden');
+            }
+
+            // Remove old listener
+            const newBtn = saveBtn.cloneNode(true);
+            saveBtn.parentNode.replaceChild(newBtn, saveBtn);
+
+            // Add new listener
+            document.getElementById('save-pitch-btn').addEventListener('click', () => {
+                savePitch(persona, currentRefinedText);
+            });
+        }
+
+        function getSavedPitchKey(restaurant, persona) {
+            return `${restaurant.name.toLowerCase().trim()}_${restaurant.latitude.toFixed(2)}_${restaurant.longitude.toFixed(2)}_${persona}`;
+        }
+
+        function savePitch(persona, pitchText) {
+            const allSavedPitches = JSON.parse(localStorage.getItem(SAVED_PITCHES_KEY) || '{}');
+            const key = getSavedPitchKey(currentRestaurantData, persona);
+
+            allSavedPitches[key] = {
+                restaurant_name: currentRestaurantData.name,
+                latitude: currentRestaurantData.latitude,
+                longitude: currentRestaurantData.longitude,
+                persona: persona,
+                persona_label: getPersonaLabel(persona),
+                refined_text: pitchText,
+                saved_at: new Date().toISOString(),
+                cheese_name: originalPitchData.cheese.name
+            };
+
+            localStorage.setItem(SAVED_PITCHES_KEY, JSON.stringify(allSavedPitches));
+
+            // Update UI
+            const saveBtn = document.getElementById('save-pitch-btn');
+            const savedIndicator = document.getElementById('saved-indicator');
+
+            saveBtn.textContent = '✅ Pitch Saved';
+            saveBtn.style.background = '#666';
+            savedIndicator.classList.remove('hidden');
+
+            // Show temporary success message
+            savedIndicator.textContent = '✅ Pitch saved! Will load automatically on next visit';
+            setTimeout(() => {
+                savedIndicator.textContent = '✅ Pitch saved! Will load automatically on next visit';
+            }, 3000);
+        }
+
+        function loadSavedPitch(restaurant, persona) {
+            const allSavedPitches = JSON.parse(localStorage.getItem(SAVED_PITCHES_KEY) || '{}');
+            const key = getSavedPitchKey(restaurant, persona);
+            return allSavedPitches[key] || null;
+        }
+
+        // Check for saved pitch on navigation to refinement screen
+        function checkForSavedPitch() {
+            // This will be called when navigating to refinement screen
+            // If saved pitches exist for this restaurant, show load buttons
+            const allSavedPitches = JSON.parse(localStorage.getItem(SAVED_PITCHES_KEY) || '{}');
+            const baseKey = `${currentRestaurantData.name.toLowerCase().trim()}_${currentRestaurantData.latitude.toFixed(2)}_${currentRestaurantData.longitude.toFixed(2)}`;
+
+            const savedPitchData = [];
+            ['chef', 'manager', 'gatekeeper'].forEach(persona => {
+                const key = `${baseKey}_${persona}`;
+                if (allSavedPitches[key]) {
+                    savedPitchData.push({
+                        persona: persona,
+                        label: getPersonaLabel(persona),
+                        data: allSavedPitches[key]
+                    });
+                }
+            });
+
+            if (savedPitchData.length > 0) {
+                // Remove any existing saved pitch notice
+                const existingNotice = document.getElementById('saved-pitches-notice');
+                if (existingNotice) {
+                    existingNotice.remove();
+                }
+
+                // Create notice with load buttons
+                const selector = document.querySelector('.refinement-selector');
+                const notice = document.createElement('div');
+                notice.id = 'saved-pitches-notice';
+                notice.style.cssText = 'background: #e8f5e8; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2c5f2d;';
+
+                let html = '<strong style="color: #2c5f2d; font-size: 1.1em;">💾 Your Saved Pitches:</strong><br><br>';
+
+                savedPitchData.forEach(saved => {
+                    const savedDate = new Date(saved.data.saved_at);
+                    const dateStr = savedDate.toLocaleDateString() + ' ' + savedDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                    html += `
+                        <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 10px; border: 2px solid #2c5f2d;">
+                            <strong>${saved.label}</strong><br>
+                            <span style="color: #666; font-size: 0.85em;">Saved: ${dateStr}</span><br>
+                            <button class="btn load-saved-pitch-btn" data-persona="${saved.persona}"
+                                    style="margin-top: 10px; background: #2c5f2d; color: white; padding: 10px 15px;">
+                                📖 Load This Pitch
+                            </button>
+                        </div>
+                    `;
+                });
+
+                notice.innerHTML = html;
+                selector.insertBefore(notice, selector.firstChild);
+
+                // Add click handlers to load buttons
+                document.querySelectorAll('.load-saved-pitch-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const persona = btn.dataset.persona;
+                        loadAndDisplaySavedPitch(persona);
+                    });
+                });
+            }
+        }
+
+        function loadAndDisplaySavedPitch(persona) {
+            const savedPitch = loadSavedPitch(currentRestaurantData, persona);
+
+            if (!savedPitch) {
+                alert('Saved pitch not found');
+                return;
+            }
+
+            // Show refined pitch display
+            const refinedDisplay = document.getElementById('refined-pitch-display');
+            const refinedLabel = document.getElementById('refined-pitch-label');
+            const refinedContent = document.getElementById('refined-pitch-content');
+
+            refinedLabel.textContent = `📝 Saved Pitch: ${getPersonaLabel(persona)}`;
+            refinedContent.innerHTML = savedPitch.refined_text;
+            refinedDisplay.classList.remove('hidden');
+
+            // Initialize TTS
+            initializeRefinedTTS(savedPitch.refined_text);
+
+            // Setup micro-refinement buttons
+            setupMicroRefinementButtons(persona);
+
+            // Setup save button (will show already saved)
+            setupSavePitchButton(persona, savedPitch.refined_text);
+
+            // Scroll to it
+            refinedDisplay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ===== END MICRO-REFINEMENT & SAVE FUNCTIONS =====
 
         // Back button (from pitch to list)
         backBtn.addEventListener('click', () => {

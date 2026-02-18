@@ -309,6 +309,41 @@ async def refine_pitch(request: PitchRefinementRequest):
         raise HTTPException(status_code=500, detail=f"Error refining pitch: {str(e)}")
 
 
+class MicroRefinementRequest(BaseModel):
+    """Request to apply micro-refinement to existing pitch"""
+    current_pitch: str
+    micro_type: str  # 'shorten', 'expand', 'casual', 'formal', 'strong_opener'
+    restaurant_name: str
+
+
+@app.post("/api/pitch/micro-refine")
+async def micro_refine_pitch(request: MicroRefinementRequest):
+    """
+    Apply micro-refinement to an existing pitch
+
+    Micro-refinements are small tweaks to polish the pitch:
+    - shorten: Condense to 20-30 seconds
+    - expand: Add more detail
+    - casual: More conversational tone
+    - formal: More professional tone
+    - strong_opener: Punch up the opening
+    """
+    try:
+        pitch_generator = SalesPitchGenerator(ANTHROPIC_API_KEY)
+
+        # Apply micro-refinement
+        refined_pitch = pitch_generator.apply_micro_refinement(
+            current_pitch=request.current_pitch,
+            micro_type=request.micro_type,
+            restaurant_name=request.restaurant_name
+        )
+
+        return refined_pitch
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error applying micro-refinement: {str(e)}")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

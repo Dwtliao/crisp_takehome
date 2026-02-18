@@ -463,3 +463,108 @@ Avoid: Long explanations, sales pressure, anything that takes more than 30 secon
             "cheese_name": cheese_name,
             "refined_text": refined_text
         }
+
+    def apply_micro_refinement(self, current_pitch: str, micro_type: str,
+                                restaurant_name: str) -> Dict[str, Any]:
+        """
+        Apply micro-refinement to polish an existing pitch
+
+        Micro-refinements are small tweaks:
+        - shorten: Condense to 20-30 seconds
+        - expand: Add more detail and examples
+        - casual: More conversational tone
+        - formal: More professional tone
+        - strong_opener: Punch up the opening line
+
+        Args:
+            current_pitch: The current pitch text
+            micro_type: Type of refinement to apply
+            restaurant_name: Name of the restaurant
+
+        Returns:
+            Dict with refined_text and micro_type
+        """
+        # Micro-refinement prompt templates
+        templates = {
+            'shorten': f"""Take this sales pitch and condense it to 20-30 seconds when spoken aloud.
+
+Keep only the most impactful points. Remove any fluff. Be concise but compelling.
+
+Current pitch:
+{current_pitch}
+
+Condensed version (20-30 seconds):""",
+
+            'expand': f"""Take this sales pitch and expand it with more detail and specific examples.
+
+Add 1-2 concrete stories, statistics, or sensory details that make it more vivid and memorable.
+
+Current pitch:
+{current_pitch}
+
+Expanded version:""",
+
+            'casual': f"""Rewrite this sales pitch in a more conversational, casual tone.
+
+Make it sound like you're talking to a friend. Use contractions, simpler words, more natural phrasing.
+
+Current pitch:
+{current_pitch}
+
+Casual version:""",
+
+            'formal': f"""Rewrite this sales pitch in a more professional, polished tone.
+
+Elevate the language without being stuffy. Sound authoritative and confident.
+
+Current pitch:
+{current_pitch}
+
+Formal version:""",
+
+            'strong_opener': f"""Rewrite this pitch with a powerful, attention-grabbing opening line.
+
+Hook them immediately with an unexpected fact, bold statement, or compelling question.
+Keep the rest of the pitch mostly the same, but nail that first sentence.
+
+Current pitch:
+{current_pitch}
+
+Version with strong opener:"""
+        }
+
+        if micro_type not in templates:
+            raise ValueError(f"Unknown micro_type: {micro_type}")
+
+        prompt = templates[micro_type]
+
+        # Call Claude API
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+        }
+
+        data = {
+            "model": "claude-sonnet-4-5-20250929",
+            "max_tokens": 1200,
+            "messages": [{
+                "role": "user",
+                "content": prompt
+            }]
+        }
+
+        response = requests.post(url, headers=headers, json=data, timeout=60)
+
+        if response.status_code != 200:
+            raise Exception(f"API error: {response.status_code} - {response.text}")
+
+        result = response.json()
+        refined_text = result['content'][0]['text']
+
+        return {
+            "micro_type": micro_type,
+            "restaurant_name": restaurant_name,
+            "refined_text": refined_text
+        }
