@@ -103,6 +103,80 @@ class SalesPitchGenerator:
             }
         }
 
+    def detect_asian_cuisine(self, restaurant_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Detect if restaurant serves Asian cuisine (dairy-incompatible)
+
+        Args:
+            restaurant_data: Restaurant info from Google Places
+
+        Returns:
+            Dict with is_asian (bool), confidence (str), and reasons (list)
+        """
+        name = restaurant_data.get('name', '').lower()
+        types = [t.lower() for t in restaurant_data.get('types', [])]
+        reviews = restaurant_data.get('reviews', [])
+
+        # Get menu text from reviews
+        menu_text = ' '.join([r.get('text', '').lower() for r in reviews[:5]])
+
+        # Asian cuisine indicators
+        asian_keywords = {
+            'strong': [
+                'sushi', 'ramen', 'pho', 'pad thai', 'dim sum', 'curry', 'tikka',
+                'tandoor', 'bibimbap', 'bulgogi', 'teriyaki', 'tempura', 'udon',
+                'soba', 'miso', 'kimchi', 'dumpling', 'bao', 'noodle', 'wok',
+                'szechuan', 'hunan', 'cantonese', 'thai', 'chinese', 'japanese',
+                'korean', 'vietnamese', 'indian', 'asian', 'siam', 'tofu'
+            ],
+            'moderate': [
+                'rice bowl', 'stir fry', 'spring roll', 'edamame', 'sake',
+                'wasabi', 'ginger', 'soy sauce', 'sesame'
+            ]
+        }
+
+        asian_types = [
+            'asian', 'chinese', 'japanese', 'thai', 'korean', 'vietnamese', 'indian'
+        ]
+
+        reasons = []
+        score = 0
+
+        # Check restaurant types (strongest signal)
+        for asian_type in asian_types:
+            if any(asian_type in t for t in types):
+                reasons.append(f"Restaurant type: {asian_type}")
+                score += 10
+
+        # Check name for strong keywords
+        for keyword in asian_keywords['strong']:
+            if keyword in name:
+                reasons.append(f"Name contains: {keyword}")
+                score += 5
+                break  # Only count once for name
+
+        # Check menu/reviews for strong keywords
+        strong_menu_matches = [kw for kw in asian_keywords['strong'] if kw in menu_text]
+        if len(strong_menu_matches) >= 3:
+            reasons.append(f"Menu mentions: {', '.join(strong_menu_matches[:3])}")
+            score += len(strong_menu_matches)
+
+        # Check menu for moderate keywords
+        moderate_menu_matches = [kw for kw in asian_keywords['moderate'] if kw in menu_text]
+        if len(moderate_menu_matches) >= 2:
+            score += 1
+
+        # Determine result
+        is_asian = score >= 5
+        confidence = 'high' if score >= 10 else 'medium' if score >= 5 else 'low'
+
+        return {
+            'is_asian': is_asian,
+            'confidence': confidence,
+            'score': score,
+            'reasons': reasons
+        }
+
     def generate_sales_pitch(
         self,
         restaurant_data: Dict[str, Any],

@@ -35,9 +35,16 @@ class GeoapifyClient:
         # Fast Food - Burgers/Tacos
         'taco', 'tacos', 'burger', 'burgers',
 
-        # Asian (name-based)
+        # Asian (name-based) - EXPANDED
         'ramen', 'thai', 'sushi', 'noodle', 'noodles',
-        'pho', 'teriyaki', 'wok', 'asian',
+        'pho', 'teriyaki', 'wok', 'asian', 'china', 'chinese',
+        'japan', 'japanese', 'korea', 'korean', 'vietnam', 'vietnamese',
+        'india', 'indian', 'curry', 'tikka', 'tandoor', 'biryani',
+        'dim sum', 'dumpling', 'bao', 'szechuan', 'hunan', 'cantonese',
+        'hibachi', 'yakitori', 'izakaya', 'udon', 'soba', 'tempura',
+        'pad thai', 'kimchi', 'bulgogi', 'bibimbap', 'tofu', 'miso',
+        'siam', 'shinsen', 'todoroki', 'kansaku', 'soban',
+        'paragon', 'samosa', 'panang', 'massaman', 'laksa',
 
         # Middle Eastern Fast Casual
         'kabob', 'kebab', 'shawarma', 'falafel', 'gyro',
@@ -97,6 +104,10 @@ class GeoapifyClient:
             props = feature.get('properties', {})
             name = props.get('name', '').lower()
             categories = props.get('categories', [])
+
+            # Skip if no name or name is empty
+            if not name or name.strip() == '':
+                continue
 
             # Check if any excluded category matches
             has_excluded_category = any(
@@ -311,6 +322,8 @@ Answer with just "SUITABLE" or "EXCLUDE" and brief reason."""
         # Single unified prompt for high-quality restaurants
         prompt = f"""Hillary sells premium artisan cheeses ($30-50/lb) and needs high-quality restaurant prospects.
 
+CRITICAL: Cheese/dairy does NOT pair well with Asian cuisines. We must filter out ALL Asian restaurants.
+
 Restaurants to evaluate:
 {restaurants_text}
 
@@ -319,18 +332,24 @@ KEEP if restaurant is:
 ✓ Upscale steakhouses, upscale seafood (like Oceanique)
 ✓ Quality casual: Tapas bars (like Tapas Barcelona), upscale cafes (Bluestone Cafe)
 ✓ Chef-driven, creative menus, would use artisan ingredients
+✓ Mediterranean, Middle Eastern (if cheese-friendly)
 ✓ Likely $20+ entrees, quality-focused
 
 EXCLUDE if:
+✗ No name or "Unknown" - cannot prospect without a proper restaurant name
 ✗ Fast food or chains (IHOP, Applebee's, Chipotle, Olive Garden, etc.)
 ✗ Obvious casual: diners, "grill", "kitchen", "eats", taverns, sports bars
 ✗ Pizza places (unless upscale wood-fired)
-✗ Asian fast-casual (pho, ramen, noodles, sushi rolls)
+✗ **ANY Asian cuisine**: Chinese, Japanese, Thai, Korean, Vietnamese, Indian, Malaysian, Indonesian, Filipino
+✗ Asian restaurants (even if upscale): Sushi, ramen, pho, curry, dim sum, hibachi, izakaya, yakitori
+✗ Asian-sounding names: Siam, Paragon, Shinsen, Todoroki, Kansaku, Soban, any Japanese/Thai/Chinese/Korean/Indian names
 ✗ Mexican fast-casual (burrito, taco shops)
 ✗ Coffee shops (unless clearly upscale cafe with food menu)
 ✗ Delis, bagel shops, sandwich shops
 
-When in doubt: Would this restaurant appreciate a $40/lb artisan cheese? If yes, KEEP. If no, EXCLUDE.
+**IMPORTANT**: Be very strict with Asian cuisine. Even if it looks upscale, if the name sounds Asian or the cuisine is Asian, EXCLUDE it. Cheese does not pair well with Asian food.
+
+When in doubt: Would this restaurant appreciate and USE a $40/lb artisan cheese in their dishes? If yes, KEEP. If no or unsure, EXCLUDE.
 
 For each number: "1. KEEP" or "1. EXCLUDE". One per line."""
 

@@ -169,6 +169,15 @@
             background: #3367d6;
         }
 
+        .btn-reject {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #ff5252;
+        }
+
         .distance-badge {
             display: inline-block;
             background: #e3f2fd;
@@ -247,6 +256,32 @@
             margin: 15px 0;
         }
 
+        .address-history {
+            margin-top: 10px;
+        }
+
+        .address-history-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .history-item {
+            display: inline-block;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 6px 12px;
+            margin: 4px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: #e0e0e0;
+        }
+
         .hidden {
             display: none;
         }
@@ -284,6 +319,7 @@
                     id="address-input"
                     placeholder="e.g., 505 Main St, Evanston, IL"
                 >
+                <div id="address-history" class="address-history"></div>
             </div>
 
             <button id="address-btn" class="btn btn-secondary">Search This Address</button>
@@ -304,6 +340,11 @@
             <button id="change-location-btn" class="btn back-btn">📍 Change Location</button>
             <h2>Nearby Prospects</h2>
             <p id="search-info" style="color: #666; margin-bottom: 15px;"></p>
+            <p id="memory-info" style="font-size: 0.85em; color: #888; margin-bottom: 10px;">
+                <span id="memory-stats"></span>
+                <a href="#" onclick="event.preventDefault(); viewRejectedRestaurants();" style="color: #666; text-decoration: underline; margin-left: 10px;">View list</a>
+                <a href="#" onclick="event.preventDefault(); clearRejectedRestaurants();" style="color: #666; text-decoration: underline; margin-left: 10px;">Clear memory</a>
+            </p>
             <ul id="restaurant-list" class="restaurant-list"></ul>
         </div>
 
@@ -325,6 +366,218 @@
 
         // API endpoint (use relative path since we're mounted on same server)
         const API_BASE = 'http://localhost:8000';
+
+        // Restaurant name blacklist - filter these out
+        const RESTAURANT_BLACKLIST = [
+            'royal thai',
+            'mcdonald',
+            'burger king',
+            'wendy',
+            'taco bell',
+            'subway',
+            'chipotle',
+            'panera',
+            'starbucks',
+            'dunkin'
+        ];
+
+        // Address History Management
+        const ADDRESS_HISTORY_KEY = 'happy_pastures_address_history';
+        const MAX_HISTORY_ITEMS = 5;
+
+        // Rejected Restaurants Learning System
+        const REJECTED_RESTAURANTS_KEY = 'happy_pastures_rejected_restaurants';
+        const MAX_REJECTED_ITEMS = 200; // Store up to 200 rejections
+
+        function saveAddressToHistory(address) {
+            let history = JSON.parse(localStorage.getItem(ADDRESS_HISTORY_KEY) || '[]');
+
+            // Remove if already exists (to move it to front)
+            history = history.filter(item => item.toLowerCase() !== address.toLowerCase());
+
+            // Add to front
+            history.unshift(address);
+
+            // Keep only last N items
+            history = history.slice(0, MAX_HISTORY_ITEMS);
+
+            localStorage.setItem(ADDRESS_HISTORY_KEY, JSON.stringify(history));
+            displayAddressHistory();
+        }
+
+        function getAddressHistory() {
+            return JSON.parse(localStorage.getItem(ADDRESS_HISTORY_KEY) || '[]');
+        }
+
+        function displayAddressHistory() {
+            const history = getAddressHistory();
+            const historyContainer = document.getElementById('address-history');
+
+            if (history.length === 0) {
+                historyContainer.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="address-history-label">Recent addresses:</div>';
+            history.forEach(address => {
+                html += `<span class="history-item" onclick="useHistoryAddress('${address.replace(/'/g, "\\'")}')">${address}</span>`;
+            });
+
+            historyContainer.innerHTML = html;
+        }
+
+        function useHistoryAddress(address) {
+            document.getElementById('address-input').value = address;
+            document.getElementById('address-btn').click();
+        }
+
+        function shouldFilterRestaurant(restaurantName) {
+            if (!restaurantName || restaurantName.trim() === '') {
+                return true; // Filter out empty names
+            }
+
+            const nameLower = restaurantName.toLowerCase().trim();
+
+            // Filter out "Unknown" or similar placeholder names
+            if (nameLower === 'unknown' || nameLower === 'unnamed' || nameLower === 'no name') {
+                return true;
+            }
+
+            return RESTAURANT_BLACKLIST.some(blocked => nameLower.includes(blocked));
+        }
+
+        // Rejected Restaurants Learning System
+        function saveRejectedRestaurant(restaurant) {
+            let rejected = JSON.parse(localStorage.getItem(REJECTED_RESTAURANTS_KEY) || '{}');
+
+            // Create unique key from name + approximate location (2 decimal places for better matching)
+            const lat = parseFloat(restaurant.latitude);
+            const lon = parseFloat(restaurant.longitude);
+            const key = `${restaurant.name.toLowerCase().trim()}_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+
+            rejected[key] = {
+                name: restaurant.name,
+                address: restaurant.address,
+                latitude: lat,
+                longitude: lon,
+                rejectedAt: new Date().toISOString(),
+                reason: 'manual_rejection'
+            };
+
+            console.log('=== SAVING REJECTION ===');
+            console.log('Restaurant:', restaurant.name);
+            console.log('Key:', key);
+            console.log('Coords:', lat, lon);
+            console.log('Full data:', rejected[key]);
+            console.log('=== SAVED ===\n');
+
+            // Keep only last N rejections
+            const entries = Object.entries(rejected);
+            if (entries.length > MAX_REJECTED_ITEMS) {
+                // Sort by date and keep most recent
+                entries.sort((a, b) => new Date(b[1].rejectedAt) - new Date(a[1].rejectedAt));
+                rejected = Object.fromEntries(entries.slice(0, MAX_REJECTED_ITEMS));
+            }
+
+            localStorage.setItem(REJECTED_RESTAURANTS_KEY, JSON.stringify(rejected));
+        }
+
+        function isRestaurantRejected(restaurant) {
+            if (!restaurant || !restaurant.name) {
+                console.warn('Invalid restaurant object:', restaurant);
+                return false;
+            }
+
+            const rejected = JSON.parse(localStorage.getItem(REJECTED_RESTAURANTS_KEY) || '{}');
+
+            // Ensure lat/lon are numbers
+            const lat = parseFloat(restaurant.latitude);
+            const lon = parseFloat(restaurant.longitude);
+
+            if (isNaN(lat) || isNaN(lon)) {
+                console.warn('Invalid coordinates for restaurant:', restaurant.name, lat, lon);
+                return false;
+            }
+
+            const key = `${restaurant.name.toLowerCase().trim()}_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+            const isRejected = rejected.hasOwnProperty(key);
+
+            // Always log for debugging
+            console.log(`[Rejection Check] ${restaurant.name}: ${isRejected ? 'REJECTED ❌' : 'OK ✓'}`);
+            console.log(`  Key: ${key}`);
+
+            if (isRejected) {
+                console.log(`  ➜ Found in memory, will be filtered out`);
+            }
+
+            return isRejected;
+        }
+
+        function getRejectedCount() {
+            const rejected = JSON.parse(localStorage.getItem(REJECTED_RESTAURANTS_KEY) || '{}');
+            return Object.keys(rejected).length;
+        }
+
+        function clearRejectedRestaurants() {
+            if (confirm('Clear all rejected restaurants from memory?')) {
+                localStorage.removeItem(REJECTED_RESTAURANTS_KEY);
+                alert('Rejection history cleared!');
+                location.reload();
+            }
+        }
+
+        function viewRejectedRestaurants() {
+            const rejected = JSON.parse(localStorage.getItem(REJECTED_RESTAURANTS_KEY) || '{}');
+            const count = Object.keys(rejected).length;
+
+            if (count === 0) {
+                alert('No restaurants in rejection memory.');
+                return;
+            }
+
+            console.log('=== REJECTED RESTAURANTS IN MEMORY ===');
+            let list = `${count} rejected restaurants:\n\n`;
+            Object.entries(rejected).forEach(([key, r], i) => {
+                list += `${i+1}. ${r.name}\n   ${r.address}\n   Rejected: ${new Date(r.rejectedAt).toLocaleDateString()}\n\n`;
+                console.log(`${i+1}. ${r.name}`);
+                console.log(`   Key: ${key}`);
+                console.log(`   Lat/Lon: ${r.latitude}, ${r.longitude}`);
+                console.log(`   Address: ${r.address}`);
+                console.log('');
+            });
+            console.log('=== END REJECTED RESTAURANTS ===\n');
+
+            alert(list);
+        }
+
+        function rejectRestaurant(restaurant, itemElement) {
+            // Save to memory
+            saveRejectedRestaurant(restaurant);
+
+            // Show confirmation overlay on card
+            const confirmDiv = document.createElement('div');
+            confirmDiv.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 107, 107, 0.9); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 8px;';
+            confirmDiv.textContent = `✓ ${restaurant.name} won't appear again`;
+            itemElement.style.position = 'relative';
+            itemElement.appendChild(confirmDiv);
+
+            // Fade out and remove
+            setTimeout(() => {
+                itemElement.style.transition = 'all 0.3s ease-out';
+                itemElement.style.transform = 'translateX(-100%)';
+                itemElement.style.opacity = '0';
+
+                setTimeout(() => {
+                    itemElement.remove();
+
+                    // Update counts
+                    const remaining = document.querySelectorAll('.restaurant-item').length;
+                    const totalRejected = getRejectedCount();
+                    const memoryStats = document.getElementById('memory-stats');
+                    memoryStats.textContent = `🧠 ${totalRejected} restaurants in rejection memory`;
+                }, 300);
+            }, 1200);
+        }
 
         // DOM elements
         const gpsBtn = document.getElementById('gps-btn');
@@ -399,6 +652,9 @@
                 const lat = parseFloat(results[0].lat);
                 const lon = parseFloat(results[0].lon);
 
+                // Save to history after successful geocoding
+                saveAddressToHistory(address);
+
                 await searchRestaurants(lat, lon);
 
             } catch (error) {
@@ -443,10 +699,48 @@
             restaurantListScreen.classList.remove('hidden');
 
             // Sort by distance (closest first)
-            const sortedProspects = [...data.prospects].sort((a, b) => a.distance_km - b.distance_km);
+            let sortedProspects = [...data.prospects].sort((a, b) => a.distance_km - b.distance_km);
 
-            document.getElementById('search-info').textContent =
-                `Found ${data.total} prospects (sorted by distance)`;
+            // Filter out blacklisted restaurants
+            const originalCount = sortedProspects.length;
+            sortedProspects = sortedProspects.filter(r => !shouldFilterRestaurant(r.name));
+            const blacklistedCount = originalCount - sortedProspects.length;
+
+            // Filter out previously rejected restaurants
+            console.log('=== STARTING REJECTION FILTER ===');
+            console.log(`Checking ${sortedProspects.length} restaurants against rejection memory...`);
+
+            const beforeRejectionFilter = sortedProspects.length;
+            sortedProspects = sortedProspects.filter(r => !isRestaurantRejected(r));
+            const rejectedCount = beforeRejectionFilter - sortedProspects.length;
+
+            console.log(`Filtered out ${rejectedCount} rejected restaurants`);
+            console.log(`${sortedProspects.length} restaurants remaining`);
+            console.log('=== REJECTION FILTER COMPLETE ===\n');
+
+            let infoText = `Found ${sortedProspects.length} prospects (sorted by distance)`;
+            const filters = [];
+            if (blacklistedCount > 0) filters.push(`${blacklistedCount} filtered`);
+            if (rejectedCount > 0) filters.push(`${rejectedCount} previously rejected`);
+            if (filters.length > 0) {
+                infoText += ` • ${filters.join(', ')}`;
+            }
+            document.getElementById('search-info').textContent = infoText;
+
+            // Update memory stats
+            const totalRejected = getRejectedCount();
+            const memoryStats = document.getElementById('memory-stats');
+            if (totalRejected > 0) {
+                memoryStats.textContent = `🧠 ${totalRejected} restaurants in rejection memory`;
+                memoryStats.style.color = '#4CAF50';
+                memoryStats.style.fontWeight = 'bold';
+            } else {
+                memoryStats.textContent = '';
+            }
+
+            // Add timestamp for debugging
+            const now = new Date().toLocaleTimeString();
+            console.log(`[${now}] Restaurant list displayed with ${sortedProspects.length} items`);
 
             const list = document.getElementById('restaurant-list');
             list.innerHTML = '';
@@ -474,6 +768,9 @@
                         <button class="btn btn-small" onclick="event.stopPropagation();">
                             📋 View Pitch
                         </button>
+                        <button class="btn btn-small btn-reject" onclick="event.stopPropagation();" title="Remember: don't show this restaurant again">
+                            ❌ Not Interested
+                        </button>
                     </div>
                 `;
 
@@ -485,8 +782,12 @@
                 });
 
                 // View Pitch button
-                const pitchBtn = item.querySelector('.btn:not(.btn-directions)');
+                const pitchBtn = item.querySelector('.btn:not(.btn-directions):not(.btn-reject)');
                 pitchBtn.addEventListener('click', () => showPitch(restaurant));
+
+                // Reject button
+                const rejectBtn = item.querySelector('.btn-reject');
+                rejectBtn.addEventListener('click', () => rejectRestaurant(restaurant, item));
 
                 list.appendChild(item);
             });
@@ -523,6 +824,109 @@
             try {
                 const response = await fetch(
                     `${API_BASE}/api/pitch?name=${encodeURIComponent(restaurant.name)}&lat=${restaurant.latitude}&lon=${restaurant.longitude}`
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate pitch');
+                }
+
+                const pitch = await response.json();
+                pitchLoading.classList.add('hidden');
+
+                // Check if it's a warning (Asian cuisine detected)
+                if (pitch.warning === 'asian_cuisine_detected') {
+                    displayAsianCuisineWarning(pitch, restaurant);
+                } else {
+                    displayPitch(pitch);
+                }
+            } catch (error) {
+                pitchLoading.classList.add('hidden');
+                pitchContent.innerHTML = '<div class="error">Failed to generate pitch. Please try again.</div>';
+            }
+        }
+
+        // Display Asian cuisine warning
+        function displayAsianCuisineWarning(warningData, restaurant) {
+            const pitchContent = document.getElementById('pitch-content');
+
+            pitchContent.innerHTML = `
+                <h2>${warningData.restaurant.name}</h2>
+                <p style="color: #666; margin-bottom: 20px;">
+                    📍 ${warningData.restaurant.address}
+                </p>
+
+                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 4px; margin: 20px 0;">
+                    <h3 style="color: #856404; margin-top: 0;">⚠️ Asian Cuisine Detected</h3>
+                    <p style="color: #856404; font-size: 1.1em; line-height: 1.6;">
+                        ${warningData.message}
+                    </p>
+
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ffc107;">
+                        <strong style="color: #856404;">Detection Confidence:</strong> ${warningData.confidence}<br>
+                        <strong style="color: #856404;">Reasons:</strong>
+                        <ul style="margin-top: 5px; color: #856404;">
+                            ${warningData.reasons.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 4px;">
+                        <p style="margin: 0; color: #666;">
+                            <strong>💡 Recommendation:</strong> ${warningData.suggestion}
+                        </p>
+                    </div>
+
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button
+                            class="btn btn-reject"
+                            style="flex: 1; padding: 12px;"
+                            onclick="rejectAndReturn('${restaurant.name}', ${restaurant.latitude}, ${restaurant.longitude})">
+                            ❌ Not Interested
+                        </button>
+                        <button
+                            class="btn"
+                            style="flex: 1; padding: 12px; background: #2c5f2d;"
+                            onclick="generatePitchAnyway('${restaurant.name.replace(/'/g, "\\'")}', ${restaurant.latitude}, ${restaurant.longitude})">
+                            📋 Generate Pitch Anyway
+                        </button>
+                    </div>
+                </div>
+
+                <p style="color: #999; font-size: 0.9em; margin-top: 20px;">
+                    ℹ️ This restaurant was flagged before generating an expensive sales pitch to save time and API costs.
+                </p>
+            `;
+        }
+
+        function rejectAndReturn(name, lat, lon) {
+            // Create restaurant object from pitch screen
+            const restaurant = {
+                name: name,
+                latitude: lat,
+                longitude: lon,
+                address: 'N/A'
+            };
+            saveRejectedRestaurant(restaurant);
+
+            // Go back to list
+            document.getElementById('back-btn').click();
+
+            // Show confirmation
+            setTimeout(() => {
+                alert(`"${name}" has been added to your rejection memory and won't appear in future searches.`);
+            }, 300);
+        }
+
+        async function generatePitchAnyway(name, lat, lon) {
+            const pitchContent = document.getElementById('pitch-content');
+            const pitchLoading = document.getElementById('pitch-loading');
+
+            pitchContent.innerHTML = '';
+            pitchLoading.classList.remove('hidden');
+
+            try {
+                // Call API with skip_asian_check flag
+                const response = await fetch(
+                    `${API_BASE}/api/pitch?name=${encodeURIComponent(name)}&lat=${lat}&lon=${lon}&skip_asian_check=true`
                 );
 
                 if (!response.ok) {
@@ -620,6 +1024,9 @@
                 errorMsg.classList.add('hidden');
             }
         }
+
+        // Initialize on page load
+        displayAddressHistory();
     </script>
 </body>
 </html>

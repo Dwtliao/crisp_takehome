@@ -141,9 +141,14 @@ async def get_prospects(
             geometry = feature.get('geometry', {})
             coords = geometry.get('coordinates', [None, None])
 
+            # Skip if no name
+            restaurant_name = props.get('name', '').strip()
+            if not restaurant_name:
+                continue
+
             # Basic restaurant info
             prospect = {
-                "name": props.get('name', 'Unknown'),
+                "name": restaurant_name,
                 "address": props.get('address_line2', 'No address'),
                 "distance_km": round(props.get('distance', 0) / 1000, 2),
                 "rating": props.get('rating'),
@@ -214,7 +219,8 @@ async def get_prospects(
 async def get_full_pitch(
     name: str = Query(..., description="Restaurant name"),
     lat: float = Query(..., description="Restaurant latitude"),
-    lon: float = Query(..., description="Restaurant longitude")
+    lon: float = Query(..., description="Restaurant longitude"),
+    skip_asian_check: bool = Query(False, description="Skip Asian cuisine detection")
 ):
     """
     Generate full sales pitch for a specific restaurant
@@ -233,6 +239,25 @@ async def get_full_pitch(
 
         if not restaurant_data:
             raise HTTPException(status_code=404, detail=f"Restaurant '{name}' not found")
+
+        # Step 1.5: Check if Asian cuisine (dairy-incompatible) - unless user wants to skip
+        if not skip_asian_check:
+            asian_detection = pitch_generator.detect_asian_cuisine(restaurant_data)
+
+            if asian_detection['is_asian']:
+                # Return warning instead of generating pitch
+                return {
+                    "warning": "asian_cuisine_detected",
+                    "message": "⚠️ This appears to be an Asian cuisine restaurant. Cheese/dairy products typically don't pair well with Asian cuisines.",
+                    "confidence": asian_detection['confidence'],
+                    "reasons": asian_detection['reasons'],
+                    "restaurant": {
+                        "name": restaurant_data.get('name'),
+                        "address": restaurant_data.get('address'),
+                        "types": restaurant_data.get('types', [])
+                    },
+                    "suggestion": "Consider skipping this restaurant or manually verify the menu has cheese-friendly dishes."
+                }
 
         # Step 2: Determine cheese match
         cheese_match = pitch_generator.determine_cheese_match(restaurant_data)
