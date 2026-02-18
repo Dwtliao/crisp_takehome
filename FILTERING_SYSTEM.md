@@ -224,10 +224,176 @@ Each persona button applies a "style filter" to reshape the existing pitch:
 - **One-click operation** - No complex UI
 - **Reversible** - Easy to try different personas
 
+---
+
+## ✨ Micro-Refinements: Polishing the Pitch
+
+**NEW Feature:** Fine-tune refined pitches with one-click adjustments
+
+**Location:** Page 2 (Refinement Screen), appears after persona refinement
+
+### The 5 Micro-Refinements
+
+**📏 Shorten**
+- **Goal:** Condense to 20-30 seconds spoken
+- **Use case:** Time-limited situation, quick introduction
+- **Prompt:** "Keep only most impactful points, remove fluff"
+
+**📖 Expand**
+- **Goal:** Add detail and concrete examples
+- **Use case:** Engaged listener, time to elaborate
+- **Prompt:** "Add 1-2 stories, statistics, sensory details"
+
+**💬 More Casual**
+- **Goal:** Conversational, friendly tone
+- **Use case:** Informal setting, peer conversation
+- **Prompt:** "Talk like a friend, use contractions, simpler words"
+
+**🎩 More Formal**
+- **Goal:** Professional, polished tone
+- **Use case:** Business meeting, formal presentation
+- **Prompt:** "Elevate language without stuffiness, authoritative"
+
+**⚡ Strong Opener**
+- **Goal:** Attention-grabbing first sentence
+- **Use case:** Need to hook immediately
+- **Prompt:** "Unexpected fact, bold statement, or compelling question"
+
+### How It Works
+1. Hillary selects persona (Chef, Manager, or Gatekeeper)
+2. Refined pitch generates
+3. She clicks micro-refinement button (e.g., "Shorten")
+4. Claude applies focused transformation
+5. Result replaces current pitch
+6. Can apply multiple micro-refinements sequentially
+
 ### Cost
 - **Initial pitch:** ~$0.05 (Google Places + Claude)
-- **Each refinement:** +$0.02 (Claude only, no new data lookup)
-- **Typical usage:** Most restaurants don't need refinement
+- **Each persona refinement:** +$0.02 (Claude only)
+- **Each micro-refinement:** +$0.01 (focused prompt)
+- **Load saved pitch:** $0 (localStorage)
+- **Typical usage:** Generate → Refine → 1-2 micro-adjustments → Save
+
+---
+
+## 💾 Save & Reuse Pitches: Zero-Cost Return Visits
+
+**NEW Feature:** Save perfected pitches to localStorage for instant reuse
+
+**Location:** Page 2 (Refinement Screen), after generating/refining pitch
+
+### How It Works
+
+**Saving a Pitch:**
+1. Hillary generates original pitch ($0.05)
+2. Refines for persona ($0.02)
+3. Applies 1-2 micro-refinements ($0.01 each)
+4. Clicks **"💾 Save This Version"**
+5. Pitch stored in localStorage with unique key
+
+**Loading a Saved Pitch:**
+1. Hillary returns to same restaurant later (got turned away, follow-up visit)
+2. **Page 1 indicator:** "💾 Saved Pitches Available! You have saved pitches for: Chef, Manager"
+3. Clicks "Refine This Pitch" to go to Page 2
+4. **Saved pitch cards appear** showing each saved persona with timestamp
+5. Clicks **"📖 Load This Pitch"** on desired persona
+6. Pitch loads instantly ($0 API cost!)
+7. Can still apply micro-refinements if situation changed
+
+### Storage Structure
+
+**localStorage Key:**
+```javascript
+localStorage['happy_pastures_saved_pitches'] = {
+  "oceanique_42.05_-87.68_chef": {
+    restaurant_name: "Oceanique",
+    latitude: 42.05,
+    longitude: 87.68,
+    persona: "chef",
+    persona_label: "🧑‍🍳 Chef/Kitchen Staff",
+    refined_text: "Hey Chef, I've been working...",
+    saved_at: "2026-02-18T09:45:00Z",
+    cheese_name: "Pasture Bloom"
+  }
+}
+```
+
+**Key Format:** `{restaurant_name}_{lat}_{lon}_{persona}`
+
+**Why This Format:**
+- Prevents false positives (same name, different location)
+- Allows multiple personas per restaurant
+- Includes coordinates for precise matching
+- Each persona saved separately
+
+### Benefits
+
+**Cost Savings:**
+- First visit: $0.05 (generate) + $0.02 (refine) + $0.01-0.02 (micro-adjustments) = ~$0.08
+- Return visit: $0 (load saved pitch)
+- If Hillary visits 5 times before success: Saves $0.40 in API costs
+
+**Time Savings:**
+- Load saved pitch: <100ms (localStorage read)
+- Generate new pitch: 3-5 seconds (API calls)
+- No re-thinking, no re-polishing
+
+**Long-Term Memory:**
+- Survives browser restarts
+- Survives server restarts
+- Persists indefinitely unless browser data cleared
+- Perfect for follow-up visits weeks/months later
+
+**Multiple Personas Per Restaurant:**
+- Save "Chef" version on first visit
+- Save "Manager" version when chef refers Hillary to owner
+- Save "Gatekeeper" version for front desk at large restaurants
+- Each loads independently
+
+### UI Indicators
+
+**Page 1 (Original Pitch Screen):**
+- If saved pitches exist: "💾 Saved Pitches Available! You have saved pitches for: Chef, Manager"
+- Appears prominently near top of pitch
+- Encourages Hillary to view saved work
+
+**Page 2 (Refinement Screen):**
+- **Saved pitch cards** appear at top before persona buttons
+- Each card shows:
+  - Persona icon and label (🧑‍🍳 Chef/Kitchen Staff)
+  - Saved timestamp (Feb 18, 2026 9:45 AM)
+  - "📖 Load This Pitch" button
+- Can load any saved persona or generate new one
+
+### Workflow Example
+
+**First Visit (Manager wasn't available):**
+1. Generate pitch ($0.05)
+2. Refine for Chef ($0.02)
+3. Shorten it ($0.01)
+4. Save ($0)
+5. **Total cost: $0.08**
+
+**Return Visit (Caught manager this time):**
+1. View saved pitch indicator on Page 1
+2. Go to refinement screen
+3. Generate NEW pitch for Manager persona ($0.02)
+4. Save manager version ($0)
+5. **Now has 2 saved pitches for same restaurant**
+
+**Third Visit (Need to get past host first):**
+1. Load saved Chef pitch ($0)
+2. Review it
+3. Also generate Gatekeeper pitch for front desk ($0.02)
+4. Save gatekeeper version ($0)
+5. **Now has 3 saved pitches**
+
+### Technical Details
+- **Storage limit:** ~5-10MB per origin (browser-dependent)
+- **Estimated capacity:** 100-200 saved pitches before hitting limit
+- **Performance:** O(1) lookup by key (<1ms)
+- **Persistence:** Until browser data cleared or localStorage.removeItem() called
+- **Multi-device:** Not synced (each browser has separate storage)
 
 ### Why This Matters
 **Situational Adaptability:**

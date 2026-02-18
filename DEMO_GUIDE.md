@@ -333,6 +333,180 @@ This means Hillary can visit 20 restaurants Monday, come back Friday, and her no
 
 ---
 
+## ✨ Act 7: Micro-Refinements - Polishing the Perfect Pitch
+
+### Setup:
+"Now let me show you how Hillary can polish this pitch even further with one-click adjustments."
+
+### What to Show:
+
+**Step 1: After Persona Refinement**
+- You should be on Page 2 with a refined pitch displayed (from Act 6)
+- Scroll down below the refined pitch text
+- **Point to the 5 buttons:**
+  - 📏 Shorten
+  - 📖 Expand
+  - 💬 More Casual
+  - 🎩 More Formal
+  - ⚡ Strong Opener
+
+**Step 2: Apply Shorten**
+- Click **"📏 Shorten"**
+- Watch loading indicator (2-3 seconds)
+- **New pitch appears** - significantly condensed
+- "Notice - same key points, but now 20-30 seconds max"
+- Click **"🔊 Listen to Refined Pitch"** to hear the difference
+
+**Step 3: Show Another Micro-Refinement**
+- Click **"⚡ Strong Opener"**
+- Loading indicator again
+- **Pitch updates** with punchy opening line
+- "Look at that first sentence - grabs attention immediately"
+
+**Step 4: Multiple Refinements Stack**
+- "We just applied TWO micro-refinements to the same pitch"
+- "Each one builds on the previous version"
+- "Hillary can keep refining until it's perfect"
+
+### Talking Points:
+
+**The Problem:**
+"A chef-focused pitch might be good, but maybe Hillary needs it shorter, or maybe the opening isn't punchy enough."
+
+**The Solution:**
+"Five one-click micro-refinements that polish specific aspects:
+- **Shorten:** Condense to 20-30 seconds (time-limited situation)
+- **Expand:** Add detail and stories (engaged listener)
+- **More Casual:** Friendly, conversational tone
+- **More Formal:** Professional polish
+- **Strong Opener:** Hook them in first sentence"
+
+**Cost Structure:**
+- Initial pitch: $0.05
+- Persona refinement: $0.02
+- Each micro-refinement: $0.01
+- **Typical workflow:** Generate → Refine → 1-2 micro-adjustments = ~$0.08 total
+
+**Why This Matters:**
+"Hillary can perfect the pitch iteratively without starting over. Each refinement is focused and fast."
+
+---
+
+## 💾 Act 8: Save & Reuse - Zero-Cost Return Visits
+
+### Setup:
+"Now watch what happens when Hillary perfects a pitch and wants to save it for later."
+
+### Part A: Saving a Pitch
+
+**Step 1: Save Current Pitch**
+- Still on Page 2 with refined pitch displayed
+- Scroll to bottom below micro-refinement buttons
+- Click **"💾 Save This Version"**
+- **Success message appears:** "✅ Pitch saved! You can reload this anytime."
+- Shows: "Saved for: 🧑‍🍳 Chef/Kitchen Staff"
+
+**Step 2: Navigate Away**
+- Click **"← Back to Original Pitch"**
+- Go back to restaurant list
+- Select a different restaurant
+- "We've moved on - left that restaurant behind"
+
+### Part B: Loading a Saved Pitch
+
+**Step 3: Return to Same Restaurant**
+- Go back to restaurant list
+- Find the restaurant where we saved the pitch
+- Click "View Pitch"
+- **Original pitch screen loads**
+
+**Step 4: Saved Pitch Indicator**
+- Scroll down on Page 1
+- **Point to the green box:** "💾 Saved Pitches Available!"
+- Shows: "You have saved pitches for: Chef/Kitchen Staff"
+- "Hillary immediately knows she has saved work here"
+
+**Step 5: Go to Refinement Screen**
+- Click **"Refine This Pitch →"** button
+- Navigate to Page 2
+
+**Step 6: Saved Pitch Cards**
+- **Point to saved pitch section at top:**
+  - Shows persona icon: 🧑‍🍳 Chef/Kitchen Staff
+  - Shows timestamp: "Saved: Feb 18, 2026 9:45 AM"
+  - Shows button: **"📖 Load This Pitch"**
+
+**Step 7: Load the Saved Pitch**
+- Click **"📖 Load This Pitch"**
+- **Instant display** (<100ms)
+- "Look how fast that was - no API call!"
+- Refined pitch appears exactly as we saved it
+- TTS button ready at top
+- Micro-refinement buttons available if she wants to adjust further
+
+### Part C: Multiple Personas
+
+**Step 8: Save a Second Persona**
+- Click **"← Try Different Persona"**
+- Select **"👔 Owner / Manager"**
+- Manager-focused pitch generates
+- Optionally apply a micro-refinement
+- Click **"💾 Save This Version"**
+- **Success message:** "Saved for: 👔 Owner/Manager"
+
+**Step 9: Show Both Saved Pitches**
+- Navigate away and come back to same restaurant
+- Go to Page 2 refinement screen
+- **Two saved pitch cards now appear:**
+  1. 🧑‍🍳 Chef/Kitchen Staff (Saved: 9:45 AM)
+  2. 👔 Owner/Manager (Saved: 10:12 AM)
+- "Hillary can load either one depending on who she's talking to"
+
+### Talking Points:
+
+**The Problem:**
+"Hillary might get turned away the first time. Manager isn't available. She needs to come back. But she doesn't want to pay $0.05 to regenerate the same pitch."
+
+**The Solution:**
+"Save perfected pitches to localStorage:
+- Load instantly on return visits ($0 API cost)
+- Multiple personas per restaurant
+- Persists across browser restarts, server restarts
+- Indicator on Page 1 shows saved pitches exist"
+
+**Cost Comparison:**
+- **Without save feature:**
+  - Visit 1: Generate ($0.05)
+  - Visit 2: Regenerate ($0.05)
+  - Visit 3: Regenerate ($0.05)
+  - **Total: $0.15**
+- **With save feature:**
+  - Visit 1: Generate + refine + save ($0.08)
+  - Visit 2: Load saved ($0)
+  - Visit 3: Load saved ($0)
+  - **Total: $0.08 — saves $0.07**
+
+**Real-World Scenario:**
+"Hillary visits 'Oceanique' Monday morning, pitches to host, gets turned away.
+Tuesday afternoon, manager is there - she loads saved 'Manager' pitch instantly.
+Friday evening, she catches the chef - loads saved 'Chef' pitch instantly.
+One generation fee, three visits."
+
+**Long-Term Follow-Ups:**
+"These pitches persist for weeks, months. If a restaurant says 'come back in 3 months when our supplier contract expires', Hillary's pitch is still there waiting."
+
+**Multi-Persona Strategy:**
+"Save different versions:
+- **Gatekeeper pitch** for getting past front desk
+- **Chef pitch** for culinary conversation
+- **Manager pitch** for business ROI discussion
+Each one optimized, polished, ready to deploy"
+
+### Key Message:
+"This isn't just a cost optimization - it's a workflow optimization. Hillary perfects the pitch once, reuses it forever. That's production-grade thinking."
+
+---
+
 ## 🎯 Other Features to Mention (Quick Hits)
 
 ### Walking Directions
@@ -358,9 +532,11 @@ This means Hillary can visit 20 restaurants Monday, come back Friday, and her no
 ### Business Value Summary:
 "Let's talk ROI:
 - **Time saved:** Hillary doesn't waste visits on incompatible restaurants
-- **Money saved:** $0.05 per avoided pitch (Asian detection)
-- **Better outcomes:** Contextual pitches based on real menu data
-- **Long-term memory:** Voice notes + rejection learning compound over time
+- **Money saved:** $0.05 per avoided pitch (Asian detection) + $0.05-0.08 per return visit (saved pitches)
+- **Better outcomes:** Contextual pitches based on real menu data, refined for specific audiences
+- **Pitch perfection:** Iterative refinement with micro-adjustments until it's exactly right
+- **Long-term memory:** Voice notes + rejection learning + saved pitches compound over time
+- **Zero-cost returns:** Load perfected pitches instantly on follow-up visits
 
 This isn't AI for AI's sake. This is AI solving a real cold-weather problem for a real cheese business."
 
@@ -370,10 +546,18 @@ This isn't AI for AI's sake. This is AI solving a real cold-weather problem for 
 - Claude Haiku for fast filtering ($0.001)
 - Claude Sonnet 4.5 for pitch generation ($0.02)
 - Google Places for menu data ($0.032)
+- Persona-based refinement templates ($0.02)
+- Micro-refinement prompts ($0.01 each)
 - Web Speech API for free TTS and voice notes
-- localStorage for zero-infrastructure persistence
+- localStorage for zero-infrastructure persistence (pitches + notes)
+- 2-page mobile-first architecture for clean UX
 
-**Total cost per qualified prospect: ~$0.05**"
+**Cost breakdown per prospect:**
+- Initial pitch: $0.05
+- Persona refinement: $0.02
+- Micro-refinements: $0.01-0.02
+- Load saved pitch: $0 (localStorage)
+**Typical first visit: $0.08 | Return visits: $0**"
 
 ### What We'd Improve Next:
 "Week 1 priorities if Hillary starts using this:
@@ -403,10 +587,14 @@ Use this as a script outline:
 - [ ] **Voice Notes** - Record 2 notes with realistic content (1 min)
 - [ ] **Persistence Test** - Restart server, show notes survived (1 min)
 - [ ] **Pitch Refinement** - Navigate to page 2, show 2 personas, TTS (2 min)
+- [ ] **Micro-Refinements** - Apply Shorten and Strong Opener (1 min)
+- [ ] **Save Pitch** - Save refined pitch, show success message (30 sec)
+- [ ] **Load Saved Pitch** - Navigate away, return, load from Page 2 (1 min)
+- [ ] **Multiple Personas** - Save 2nd persona, show both saved pitch cards (1 min)
 - [ ] **Quick Features** - Walking directions, rejection memory (30 sec)
 - [ ] **Closing** - ROI, technical stack, roadmap (1 min)
 
-**Total: ~12 minutes**
+**Total: ~15 minutes**
 
 ---
 

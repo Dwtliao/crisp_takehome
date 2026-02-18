@@ -60,6 +60,8 @@ This system helps Hillary sell $30-50/lb artisan cheese by finding high-probabil
 - **Text-to-speech** - Listen to pitches hands-free while walking (browser built-in, $0 cost)
 - **Voice notes** - Dictate visit outcomes, saved permanently in localStorage
 - **Pitch refinement** - 3 persona-based adaptations (Chef, Manager, Gatekeeper)
+- **Micro-refinements** - 5 polish options (Shorten, Expand, Casual, Formal, Strong Opener)
+- **Save & reuse** - Store perfected pitches in localStorage for return visits
 
 ### Tradeoff: 2-Page Architecture for Mobile UX
 **Chose:** Separate screens for original pitch and refinement
@@ -73,11 +75,143 @@ This system helps Hillary sell $30-50/lb artisan cheese by finding high-probabil
 - Explicit navigation creates intentional workflow
 - Fixes UI glitches from trying to show everything on one page
 
-**Implementation:**
-- Page 1 (Pitch Screen): Original pitch, TTS controls, voice notes, "Refine This Pitch" CTA
-- Page 2 (Refinement Screen): Restaurant summary, 3 persona buttons, refined pitch with TTS
-- Navigation: Simple show/hide with scroll-to-top on transition
-- Cost: ~$0.02 per refinement (transforms existing pitch, no data re-fetch)
+**Complete Web Page Flows:**
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ PAGE 1: Original Pitch Screen                            │
+├──────────────────────────────────────────────────────────┤
+│ 1. Restaurant name, address, phone                       │
+│ 2. 🔊 Listen to Pitch (TTS controls)                     │
+│ 3. 🧀 Recommended Product                                │
+│ 4. 💬 Opening Hook                                       │
+│ 5. 🍽️ Menu Pairings (from real menu data)               │
+│ 6. ✨ Key Talking Points                                 │
+│ 7. 🏆 Competitive Advantage                              │
+│ 8. 📞 Call to Action                                     │
+│ 9. 📝 Voice Notes (record visit outcomes)                │
+│                                                           │
+│ 10. 💾 Saved Pitches Available! (if exists)             │
+│     └─ Shows: "You have saved pitches for: Chef, Manager"│
+│                                                           │
+│ 11. [Refine This Pitch →] Button                         │
+│     └─ Click → Navigate to Page 2                        │
+└──────────────────────────────────────────────────────────┘
+
+                            ↓ Click "Refine This Pitch"
+
+┌──────────────────────────────────────────────────────────┐
+│ PAGE 2: Pitch Refinement Screen                          │
+├──────────────────────────────────────────────────────────┤
+│ [← Back to Original Pitch]                               │
+│                                                           │
+│ Restaurant: Oceanique                                     │
+│ 📍 Address                                                │
+│                                                           │
+│ ┌─────────────────────────────────────────────────────┐  │
+│ │ 💾 Your Saved Pitches: (if exists)                 │  │
+│ │                                                     │  │
+│ │ 🧑‍🍳 Chef/Kitchen Staff                             │  │
+│ │ Saved: 2/18/2026 9:45 AM                           │  │
+│ │ [📖 Load This Pitch]  ← Click to instant load      │  │
+│ │                                                     │  │
+│ │ 👔 Owner/Manager                                    │  │
+│ │ Saved: 2/18/2026 10:12 AM                          │  │
+│ │ [📖 Load This Pitch]                                │  │
+│ └─────────────────────────────────────────────────────┘  │
+│                                                           │
+│ 🔄 Refine For:                                            │
+│ [🧑‍🍳 Chef / Kitchen Staff] ← Click to generate          │
+│ [👔 Owner / Manager]                                      │
+│ [🎯 Host / Front Desk]                                    │
+│                                                           │
+│ ─────── After clicking persona or load ──────            │
+│                                                           │
+│ ┌─────────────────────────────────────────────────────┐  │
+│ │ 📝 Refined for: 🧑‍🍳 Chef/Kitchen Staff            │  │
+│ │                                                     │  │
+│ │ 🔊 Listen to Refined Pitch (TTS at top)            │  │
+│ │                                                     │  │
+│ │ [Refined pitch text content]                       │  │
+│ │                                                     │  │
+│ │ ✨ Fine-tune This Pitch:                            │  │
+│ │ [📏 Shorten] [📖 Expand]                            │  │
+│ │ [💬 More Casual] [🎩 More Formal]                   │  │
+│ │ [⚡ Strong Opener]                                   │  │
+│ │                                                     │  │
+│ │ 💾 Save This Version                                │  │
+│ │ └─ Stores to localStorage for return visits        │  │
+│ │                                                     │  │
+│ │ [← Try Different Persona]                           │  │
+│ └─────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Implementation Details:**
+- **Page 1 (Pitch Screen):**
+  - Original pitch with TTS controls
+  - Voice notes section
+  - Saved pitch indicator (checks localStorage on load)
+  - "Refine This Pitch" CTA button navigates to Page 2
+
+- **Page 2 (Refinement Screen):**
+  - Restaurant summary at top
+  - Load saved pitches section (if exist)
+  - 3 persona buttons for new generation
+  - Refined pitch display area
+  - 5 micro-refinement buttons
+  - Save pitch button
+  - TTS controls for refined pitch
+
+- **Navigation:** Simple show/hide with scroll-to-top on transition
+- **State Management:** Separate TTS instances for original vs refined
+- **Costs:**
+  - Initial pitch: ~$0.05 (Google Places + Claude)
+  - Persona refinement: ~$0.02 (Claude only)
+  - Micro-refinement: ~$0.01 each
+  - Load saved pitch: $0 (localStorage)
+
+### Save Pitch Architecture (localStorage)
+
+**Storage Structure:**
+```javascript
+localStorage['happy_pastures_saved_pitches'] = {
+  "oceanique_42.05_-87.68_chef": {
+    restaurant_name: "Oceanique",
+    latitude: 42.05,
+    longitude: 87.68,
+    persona: "chef",
+    persona_label: "🧑‍🍳 Chef/Kitchen Staff",
+    refined_text: "Hey Chef, I've been working...",
+    saved_at: "2026-02-18T09:45:00Z",
+    cheese_name: "Pasture Bloom"
+  },
+  "oceanique_42.05_-87.68_manager": {
+    // Another saved pitch for same restaurant, different persona
+  }
+}
+```
+
+**Key Design:**
+- Key format: `{restaurant_name}_{lat}_{lon}_{persona}`
+- Prevents false positives (same name, different location)
+- Allows multiple personas per restaurant
+- Includes timestamp for "last saved" display
+
+**Benefits:**
+- **Zero API cost** on return visits (no regeneration needed)
+- **Instant load** (sub-100ms from localStorage)
+- **Persistent** across browser restarts, server restarts
+- **Multiple saves** per restaurant (one per persona)
+- **Long-term follow-ups** - Hillary's work persists indefinitely
+
+**Workflow:**
+1. First visit: Generate → Refine → Polish with micro-refinements → Save
+2. Return visit (got turned away):
+   - Page 1 shows "💾 Saved Pitches Available"
+   - Click refine → See saved pitch cards
+   - Click "Load This Pitch" → Instant display ($0 cost)
+   - Can still micro-refine further if needed
 
 ---
 

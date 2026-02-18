@@ -72,13 +72,38 @@ After generating the initial pitch, refine it for specific situations:
 - Respectful, quick credibility-building
 - Simple ask with alternative
 
+### Micro-Refinements: Polish Your Pitch
+After persona refinement, fine-tune with one-click adjustments:
+
+- **📏 Shorten** - Condense to 20-30 seconds
+- **📖 Expand** - Add detail and examples
+- **💬 More Casual** - Conversational tone
+- **🎩 More Formal** - Professional polish
+- **⚡ Strong Opener** - Attention-grabbing first line
+
+**Cost:** ~$0.01 per micro-refinement
+
+### Save & Reuse Pitches
+- **💾 Save perfected pitches** to localStorage
+- **Return visits:** Load saved pitch instantly (zero API cost!)
+- **Page 1 indicator:** Shows when saved pitches exist
+- **Multiple saves:** Save different personas per restaurant
+
 ### 2-Page Mobile-First Architecture
 - **Page 1:** Original pitch with TTS and voice notes
+  - Shows saved pitch indicator if exists
+  - "Refine This Pitch" button navigates to Page 2
 - **Page 2:** Refinement screen with persona selection
+  - Load saved pitches or generate new
+  - Micro-refine and save
 - Clean navigation, no endless scrolling
 - Each page has focused purpose
 
-**Cost:** ~$0.02 per refinement (Claude only, no new data lookup)
+**Cost Breakdown:**
+- Initial pitch: ~$0.05 (Google Places + Claude)
+- Persona refinement: ~$0.02 (Claude only)
+- Micro-refinement: ~$0.01 each
+- Load saved pitch: $0 (localStorage)
 
 ---
 
@@ -167,4 +192,6 @@ Quick summary:
 - 🔊 Text-to-speech (listen to pitches hands-free via earbuds)
 - 🎤 Voice notes (dictate visit outcomes, saved permanently in localStorage)
 - 🔄 Pitch refinement (3 personas: Chef, Manager, Gatekeeper with separate TTS)
+- ✨ Micro-refinements (5 polish options: Shorten, Expand, Casual, Formal, Strong Opener)
+- 💾 Save & reuse pitches (zero cost on return visits, loads from localStorage)
 
