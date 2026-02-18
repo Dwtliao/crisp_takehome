@@ -542,6 +542,50 @@
             white-space: pre-wrap;
         }
 
+        /* Refine Pitch CTA */
+        .refine-pitch-cta {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            border-left: 4px solid #4a90e2;
+            text-align: center;
+        }
+
+        .refine-pitch-cta h3 {
+            color: #2c5f2d;
+            margin-bottom: 8px;
+        }
+
+        /* Refinement Screen */
+        .refinement-selector {
+            margin: 20px 0;
+        }
+
+        .refinement-selector h3 {
+            color: #2c5f2d;
+            margin-bottom: 8px;
+        }
+
+        .refined-pitch-display {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .refined-pitch-display .refined-pitch-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e8f2ff;
+        }
+
+        .refined-pitch-display .refined-pitch-header h4 {
+            color: #4a90e2;
+            margin: 0;
+        }
+
         .error {
             background: #f8d7da;
             color: #721c24;
@@ -695,11 +739,38 @@
 
             <div id="pitch-content"></div>
 
-            <!-- Pitch Refinement Section -->
-            <div id="pitch-refinement" class="pitch-refinement hidden">
-                <h3>🔄 Refine This Pitch For:</h3>
+            <!-- Refine Pitch CTA -->
+            <div id="refine-pitch-cta" class="refine-pitch-cta hidden">
+                <h3>🔄 Want to Refine This Pitch?</h3>
+                <p style="color: #666; margin-bottom: 15px;">
+                    Get a version tailored to who you'll be talking to (Chef, Manager, or Front Desk)
+                </p>
+                <button id="go-to-refinement-btn" class="btn" style="background: #4a90e2; color: white; padding: 15px; font-size: 1.1em; width: 100%;">
+                    Refine This Pitch →
+                </button>
+            </div>
+
+            <div id="pitch-loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Generating your sales pitch...</p>
+            </div>
+        </div>
+
+        <!-- Pitch Refinement Screen (Page 2) -->
+        <div id="refinement-screen" class="section pitch-view hidden">
+            <button id="back-to-pitch-btn" class="btn back-btn">← Back to Original Pitch</button>
+
+            <!-- Restaurant Info Summary -->
+            <div id="refinement-restaurant-info" style="margin-bottom: 20px;">
+                <h2 id="refinement-restaurant-name"></h2>
+                <p id="refinement-restaurant-address" style="color: #666;"></p>
+            </div>
+
+            <!-- Refinement Selector -->
+            <div class="refinement-selector">
+                <h3>🔄 Refine For:</h3>
                 <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
-                    Choose who you'll be talking to for a tailored version
+                    Choose who you'll be talking to
                 </p>
 
                 <div class="refinement-buttons">
@@ -727,19 +798,47 @@
                         </div>
                     </button>
                 </div>
+            </div>
 
-                <div id="refined-pitch-container" class="refined-pitch-container hidden">
-                    <div class="refined-pitch-header">
-                        <h4 id="refined-pitch-label"></h4>
-                        <button id="reset-pitch-btn" class="btn-small">← Back to Original</button>
+            <!-- Refined Pitch Display -->
+            <div id="refined-pitch-display" class="refined-pitch-display hidden">
+                <div class="refined-pitch-header">
+                    <h4 id="refined-pitch-label"></h4>
+                </div>
+
+                <!-- TTS Controls for Refined Pitch (TOP) -->
+                <div class="tts-controls" style="margin: 20px 0;">
+                    <button id="refined-tts-play-btn" class="btn btn-tts">
+                        🔊 Listen to Refined Pitch
+                    </button>
+                    <div id="refined-tts-player" class="tts-player hidden">
+                        <button id="refined-tts-pause-btn" class="btn btn-small btn-tts-control">⏸️ Pause</button>
+                        <button id="refined-tts-stop-btn" class="btn btn-small btn-tts-control">⏹️ Stop</button>
+                        <button id="refined-tts-replay-btn" class="btn btn-small btn-tts-control">🔁 Replay</button>
+                        <div class="tts-speed">
+                            <label>Speed:</label>
+                            <button class="speed-btn refined-speed-btn" data-speed="0.75">0.75x</button>
+                            <button class="speed-btn refined-speed-btn active" data-speed="1">1x</button>
+                            <button class="speed-btn refined-speed-btn" data-speed="1.25">1.25x</button>
+                            <button class="speed-btn refined-speed-btn" data-speed="1.5">1.5x</button>
+                        </div>
+                        <div id="refined-tts-status" class="tts-status">Ready to play</div>
                     </div>
-                    <div id="refined-pitch-content" class="refined-pitch-content"></div>
+                </div>
+
+                <div id="refined-pitch-content" class="refined-pitch-content"></div>
+
+                <!-- Try Another Refinement -->
+                <div style="margin-top: 30px; text-align: center;">
+                    <button id="try-another-refinement-btn" class="btn" style="background: #666; color: white;">
+                        ← Try Different Persona
+                    </button>
                 </div>
             </div>
 
-            <div id="pitch-loading" class="loading hidden">
+            <div id="refinement-loading" class="loading hidden">
                 <div class="spinner"></div>
-                <p>Generating your sales pitch...</p>
+                <p>Generating refined pitch...</p>
             </div>
         </div>
     </div>
@@ -1419,51 +1518,119 @@
         let currentRestaurantData = null;
 
         function initializePitchRefinement(pitch, restaurant) {
-            // Store original pitch data
+            // Store original pitch data for refinement screen
             originalPitchData = pitch;
-            originalPitchHTML = document.getElementById('pitch-content').innerHTML;
             currentRestaurantData = restaurant;
 
-            // Show refinement section
-            const refinementSection = document.getElementById('pitch-refinement');
-            refinementSection.classList.remove('hidden');
+            // Show the CTA button
+            const ctaSection = document.getElementById('refine-pitch-cta');
+            ctaSection.classList.remove('hidden');
 
-            // Hide refined pitch container initially
-            document.getElementById('refined-pitch-container').classList.add('hidden');
+            // Set up navigation to refinement screen
+            const goToRefinementBtn = document.getElementById('go-to-refinement-btn');
+            // Remove old listener
+            const newBtn = goToRefinementBtn.cloneNode(true);
+            goToRefinementBtn.parentNode.replaceChild(newBtn, goToRefinementBtn);
 
-            // Attach click handlers to refinement buttons
-            document.querySelectorAll('.btn-refinement').forEach(btn => {
-                // Remove old listeners by cloning
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode.replaceChild(newBtn, btn);
-
-                newBtn.addEventListener('click', async () => {
-                    const persona = newBtn.dataset.persona;
-                    await refinePitch(persona);
-                });
+            // Add new listener
+            document.getElementById('go-to-refinement-btn').addEventListener('click', () => {
+                navigateToRefinementScreen();
             });
-
-            // Reset button handler
-            const resetBtn = document.getElementById('reset-pitch-btn');
-            if (resetBtn) {
-                const newResetBtn = resetBtn.cloneNode(true);
-                resetBtn.parentNode.replaceChild(newResetBtn, resetBtn);
-
-                newResetBtn.addEventListener('click', () => {
-                    resetToOriginalPitch();
-                });
-            }
         }
 
-        async function refinePitch(persona) {
-            const refinedContainer = document.getElementById('refined-pitch-container');
+        function navigateToRefinementScreen() {
+            // Stop any playing TTS
+            stopTTS();
+
+            // Hide pitch screen
+            document.getElementById('pitch-screen').classList.remove('active');
+            document.getElementById('pitch-screen').classList.add('hidden');
+
+            // Show refinement screen
+            const refinementScreen = document.getElementById('refinement-screen');
+            refinementScreen.classList.remove('hidden');
+            refinementScreen.classList.add('active');
+
+            // Load restaurant info
+            document.getElementById('refinement-restaurant-name').textContent = currentRestaurantData.name;
+            document.getElementById('refinement-restaurant-address').textContent = `📍 ${currentRestaurantData.address}`;
+
+            // Hide refined pitch display initially
+            document.getElementById('refined-pitch-display').classList.add('hidden');
+
+            // Set up refinement button handlers
+            setupRefinementButtons();
+
+            // Set up back button
+            setupRefinementBackButton();
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function setupRefinementButtons() {
+            document.querySelectorAll('#refinement-screen .btn-refinement').forEach(btn => {
+                // Remove old listeners
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+            });
+
+            // Add new listeners
+            document.querySelectorAll('#refinement-screen .btn-refinement').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const persona = btn.dataset.persona;
+                    await generateRefinedPitch(persona);
+                });
+            });
+        }
+
+        function setupRefinementBackButton() {
+            const backBtn = document.getElementById('back-to-pitch-btn');
+            const tryAnotherBtn = document.getElementById('try-another-refinement-btn');
+
+            // Back to original pitch
+            const newBackBtn = backBtn.cloneNode(true);
+            backBtn.parentNode.replaceChild(newBackBtn, backBtn);
+            document.getElementById('back-to-pitch-btn').addEventListener('click', () => {
+                navigateBackToPitch();
+            });
+
+            // Try another refinement
+            const newTryBtn = tryAnotherBtn.cloneNode(true);
+            tryAnotherBtn.parentNode.replaceChild(newTryBtn, tryAnotherBtn);
+            document.getElementById('try-another-refinement-btn').addEventListener('click', () => {
+                // Hide refined pitch display, show persona buttons
+                document.getElementById('refined-pitch-display').classList.add('hidden');
+                stopRefinedTTS();
+            });
+        }
+
+        function navigateBackToPitch() {
+            // Stop refined TTS
+            stopRefinedTTS();
+
+            // Hide refinement screen
+            document.getElementById('refinement-screen').classList.remove('active');
+            document.getElementById('refinement-screen').classList.add('hidden');
+
+            // Show pitch screen
+            const pitchScreen = document.getElementById('pitch-screen');
+            pitchScreen.classList.remove('hidden');
+            pitchScreen.classList.add('active');
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        async function generateRefinedPitch(persona) {
+            const refinedDisplay = document.getElementById('refined-pitch-display');
             const refinedLabel = document.getElementById('refined-pitch-label');
             const refinedContent = document.getElementById('refined-pitch-content');
+            const loadingDiv = document.getElementById('refinement-loading');
 
-            // Show loading state
-            refinedContainer.classList.remove('hidden');
-            refinedLabel.textContent = `Refining pitch for ${getPersonaLabel(persona)}...`;
-            refinedContent.innerHTML = '<div class="loading"><div class="spinner"></div><p>Generating refined pitch...</p></div>';
+            // Show loading
+            loadingDiv.classList.remove('hidden');
+            refinedDisplay.classList.add('hidden');
 
             try {
                 // Build the full pitch text to send for refinement
@@ -1489,16 +1656,25 @@
 
                 const refinedPitch = await response.json();
 
+                // Hide loading
+                loadingDiv.classList.add('hidden');
+
                 // Display refined pitch
                 refinedLabel.textContent = `📝 Refined for: ${getPersonaLabel(persona)}`;
                 refinedContent.innerHTML = refinedPitch.refined_text;
+                refinedDisplay.classList.remove('hidden');
+
+                // Initialize TTS for refined pitch
+                initializeRefinedTTS(refinedPitch.refined_text);
 
                 // Scroll to refined pitch
-                refinedContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                refinedDisplay.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             } catch (error) {
                 console.error('Refinement error:', error);
+                loadingDiv.classList.add('hidden');
                 refinedContent.innerHTML = '<div class="error">Failed to refine pitch. Please try again.</div>';
+                refinedDisplay.classList.remove('hidden');
             }
         }
 
@@ -1528,14 +1704,6 @@
                 'gatekeeper': '🎯 Host/Front Desk'
             };
             return labels[persona] || persona;
-        }
-
-        function resetToOriginalPitch() {
-            // Hide refined pitch
-            document.getElementById('refined-pitch-container').classList.add('hidden');
-
-            // Scroll back to top of pitch
-            document.getElementById('pitch-content').scrollIntoView({ behavior: 'smooth' });
         }
 
         // Back button (from pitch to list)
@@ -1735,9 +1903,184 @@
         // Stop TTS when leaving pitch screen
         document.getElementById('back-btn').addEventListener('click', () => {
             stopTTS();
+            stopRefinedTTS();
         });
 
         // ===== END TTS FUNCTIONS =====
+
+        // ===== REFINED PITCH TTS FUNCTIONS =====
+
+        let refinedTtsUtterance = null;
+        let refinedTtsText = null;
+        let refinedTtsSpeed = 1.0;
+        let refinedTtsIsPlaying = false;
+
+        function initializeRefinedTTS(refinedText) {
+            refinedTtsText = refinedText;
+
+            // Reset refined TTS state
+            stopRefinedTTS();
+
+            // Set up event listeners (remove old ones first)
+            const playBtn = document.getElementById('refined-tts-play-btn');
+            const pauseBtn = document.getElementById('refined-tts-pause-btn');
+            const stopBtn = document.getElementById('refined-tts-stop-btn');
+            const replayBtn = document.getElementById('refined-tts-replay-btn');
+
+            // Clone and replace to remove old listeners
+            [playBtn, pauseBtn, stopBtn, replayBtn].forEach(btn => {
+                if (btn) {
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                }
+            });
+
+            // Add new listeners
+            document.getElementById('refined-tts-play-btn').addEventListener('click', playRefinedTTS);
+            document.getElementById('refined-tts-pause-btn').addEventListener('click', pauseRefinedTTS);
+            document.getElementById('refined-tts-stop-btn').addEventListener('click', stopRefinedTTS);
+            document.getElementById('refined-tts-replay-btn').addEventListener('click', replayRefinedTTS);
+
+            // Speed buttons
+            document.querySelectorAll('.refined-speed-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const speed = parseFloat(e.target.getAttribute('data-speed'));
+                    setRefinedTTSSpeed(speed);
+                });
+            });
+        }
+
+        function playRefinedTTS() {
+            if (!refinedTtsText) return;
+
+            // Stop any playing original TTS
+            stopTTS();
+
+            // Create new utterance
+            refinedTtsUtterance = new SpeechSynthesisUtterance(refinedTtsText);
+            refinedTtsUtterance.rate = refinedTtsSpeed;
+            refinedTtsUtterance.lang = 'en-US';
+
+            // Event handlers
+            refinedTtsUtterance.onstart = () => {
+                refinedTtsIsPlaying = true;
+                updateRefinedTTSUI('playing');
+            };
+
+            refinedTtsUtterance.onend = () => {
+                refinedTtsIsPlaying = false;
+                updateRefinedTTSUI('finished');
+            };
+
+            refinedTtsUtterance.onerror = () => {
+                refinedTtsIsPlaying = false;
+                updateRefinedTTSUI('error');
+            };
+
+            // Start speaking
+            window.speechSynthesis.speak(refinedTtsUtterance);
+
+            // Show player controls
+            document.getElementById('refined-tts-play-btn').classList.add('hidden');
+            document.getElementById('refined-tts-player').classList.remove('hidden');
+        }
+
+        function pauseRefinedTTS() {
+            if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+                window.speechSynthesis.pause();
+                updateRefinedTTSUI('paused');
+            } else if (window.speechSynthesis.paused) {
+                window.speechSynthesis.resume();
+                updateRefinedTTSUI('playing');
+            }
+        }
+
+        function stopRefinedTTS() {
+            window.speechSynthesis.cancel();
+            refinedTtsIsPlaying = false;
+            refinedTtsUtterance = null;
+            updateRefinedTTSUI('stopped');
+        }
+
+        function replayRefinedTTS() {
+            stopRefinedTTS();
+            setTimeout(() => playRefinedTTS(), 100);
+        }
+
+        function setRefinedTTSSpeed(speed) {
+            refinedTtsSpeed = speed;
+
+            // Update active button
+            document.querySelectorAll('.refined-speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseFloat(btn.getAttribute('data-speed')) === speed) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // If currently playing, restart with new speed
+            if (refinedTtsIsPlaying) {
+                const wasPlaying = window.speechSynthesis.speaking;
+                stopRefinedTTS();
+                if (wasPlaying) {
+                    setTimeout(() => playRefinedTTS(), 100);
+                }
+            }
+        }
+
+        function updateRefinedTTSUI(state) {
+            const status = document.getElementById('refined-tts-status');
+            const playBtn = document.getElementById('refined-tts-play-btn');
+            const player = document.getElementById('refined-tts-player');
+            const pauseBtn = document.getElementById('refined-tts-pause-btn');
+
+            switch(state) {
+                case 'playing':
+                    status.textContent = '🔊 Playing refined pitch...';
+                    status.className = 'tts-status';
+                    pauseBtn.textContent = '⏸️ Pause';
+                    break;
+
+                case 'paused':
+                    status.textContent = '⏸️ Paused';
+                    status.className = 'tts-status';
+                    pauseBtn.textContent = '▶️ Resume';
+                    break;
+
+                case 'stopped':
+                    status.textContent = 'Ready to play';
+                    status.className = 'tts-status';
+                    playBtn.classList.remove('hidden');
+                    player.classList.add('hidden');
+                    pauseBtn.textContent = '⏸️ Pause';
+                    break;
+
+                case 'finished':
+                    status.textContent = '✅ Finished! Click replay to hear again';
+                    status.className = 'tts-status';
+                    pauseBtn.textContent = '⏸️ Pause';
+                    break;
+
+                case 'error':
+                    status.textContent = '❌ Error playing audio';
+                    status.className = 'tts-status';
+                    break;
+            }
+        }
+
+        // Stop refined TTS when resetting to original pitch
+        function resetToOriginalPitch() {
+            // Stop refined TTS
+            stopRefinedTTS();
+
+            // Hide refined pitch
+            document.getElementById('refined-pitch-container').classList.add('hidden');
+
+            // Scroll back to top of pitch
+            document.getElementById('pitch-content').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ===== END REFINED TTS FUNCTIONS =====
 
         // ===== VOICE NOTES FUNCTIONS =====
 
