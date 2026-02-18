@@ -130,6 +130,131 @@ Found 18 prospects (sorted by distance) • 6 filtered, 3 previously rejected
 
 ---
 
+## 📦 Location Caching: Speed for Repeated Searches
+
+**NEW Feature:** Smart caching for frequently visited locations
+
+**Location:** Frontend localStorage, search flow optimization
+
+### What It Does
+Caches restaurant search results for each location, enabling instant repeat searches within 7 days.
+
+### How It Works
+
+**Cache Key Generation:**
+- Format: `loc_{lat}_{lon}` (rounded to 2 decimals)
+- Example: Search at 42.048, -87.683 → key: `loc_42.05_-87.68`
+- Handles minor GPS drift (same cache for nearby coordinates)
+
+**Cache Lifecycle:**
+1. **First search:** Fetch from API → Save to cache with timestamp
+2. **Repeat search (<7 days):** Load from cache instantly (<100ms)
+3. **Stale cache (>7 days):** Auto-delete, fetch fresh data
+4. **Manual refresh:** User clicks "🔄 Refresh" → Bypass cache, fetch fresh
+
+### Visual Indicators
+
+**Cached Results (Blue Box):**
+```
+┌──────────────────────────────────────────┐
+│ 📦 Cached results from 2 days ago       │
+│                         [🔄 Refresh]     │
+└──────────────────────────────────────────┘
+```
+- Shows cache age dynamically ("just now", "3 hours ago", "2 days ago")
+- Prominent refresh button for manual override
+
+**Fresh Results (Green Box):**
+```
+┌──────────────────────────────────────────┐
+│ ✨ Fresh results just now                 │
+└──────────────────────────────────────────┘
+```
+- Confirms data just fetched from API
+
+### Storage Details
+
+**localStorage Key:** `happy_pastures_location_cache`
+
+**Data Structure:**
+```javascript
+{
+  "loc_42.05_-87.68": {
+    timestamp: "2026-02-18T10:00:00Z",
+    lat: 42.05,
+    lon: -87.68,
+    data: {
+      prospects: [...], // Full restaurant list
+      total: 18,
+      search_center: {lat: 42.05, lon: -87.68},
+      search_radius_km: 2.5
+    }
+  }
+}
+```
+
+### Business Value
+
+**Speed Improvement:**
+- Cached: <100ms (instant)
+- Fresh API: 2-3 seconds
+- **Time saved per repeat search:** 2-3 seconds (matters in winter!)
+
+**Cost Savings:**
+- First search: ~$0.001 (Geoapify + Claude Haiku)
+- Repeat search (cached): $0
+- **Example:** 5 searches of Evanston per week = 4 × $0.001 saved
+
+**Hillary's Workflow:**
+- Monday: Search Evanston (3 sec, $0.001) → Cached
+- Tuesday: Search Evanston (instant, $0) → From cache
+- Wednesday: Search Evanston (instant, $0) → From cache
+- Thursday: Click refresh (3 sec, $0.001) → Fresh data
+- **Result:** 4 searches = 2 API calls instead of 4
+
+### Why 7-Day TTL?
+
+**Business Rationale:**
+- Restaurant turnover is slow (new restaurants don't open daily)
+- Hillary revisits neighborhoods weekly/bi-weekly
+- Balance between data freshness and speed
+- Manual refresh always available for critical updates
+
+**Cache Hit Rate Estimate:**
+- Assuming Hillary walks 3 neighborhoods, revisits each 2×/week
+- Week 1: 3 locations × 2 visits = 6 searches, 3 cached (50% hit rate)
+- Month 1: ~24 searches, ~15 cached (62% hit rate)
+- **Cumulative time saved:** ~45 seconds/month of not standing in cold
+
+### Implementation Notes
+
+**Cache Expiration Logic:**
+```javascript
+const cacheDate = new Date(cached.timestamp);
+const now = new Date();
+const daysSinceCached = (now - cacheDate) / (1000 * 60 * 60 * 24);
+
+if (daysSinceCached > 7) {
+  // Auto-delete expired cache
+  // Fetch fresh data
+}
+```
+
+**Age Display Logic:**
+- < 1 hour: "just now"
+- 1-23 hours: "3 hours ago"
+- 1+ days: "2 days ago"
+
+**Force Refresh:**
+```javascript
+searchRestaurants(lat, lon, forceRefresh = true)
+```
+- Bypasses cache check
+- Fetches fresh from API
+- Updates cache with new data
+
+---
+
 ## 🎤 Voice Notes & Text-to-Speech
 
 **NEW Feature:** Hands-free pitch listening and visit notes

@@ -507,6 +507,106 @@ Each one optimized, polished, ready to deploy"
 
 ---
 
+## 📦 Act 9: Location Caching - Instant Repeat Searches
+
+### Setup:
+"Let me show you a feature that saves Hillary time when she revisits the same neighborhoods."
+
+### What to Show:
+
+**Step 1: First Search (Fresh Results)**
+- Search "Evanston, IL" (if not already searched)
+- Point to loading screen: "Takes 2-3 seconds to search"
+- Results appear
+- **Point to indicator:**
+  - Green box: "✨ Fresh results just now"
+  - "This means we just fetched from the API"
+
+**Step 2: Go Back and Search Again**
+- Click "📍 Change Location"
+- Type same address: "Evanston, IL"
+- Click "Search This Address"
+- **Notice the speed:** "Look how fast that was! Instant!"
+- **Point to new indicator:**
+  - Blue box: "📦 Cached results from just now"
+  - Shows when data was cached
+  - **"🔄 Refresh" button** prominently displayed on right
+
+**Step 3: Explain the Cache Age**
+- "The system shows how old the cached data is"
+- "Could say 'just now', '2 hours ago', or '3 days ago'"
+- "After 7 days, cache automatically expires and fetches fresh"
+
+**Step 4: Manual Refresh**
+- Click **"🔄 Refresh"** button
+- Show loading (2-3 seconds)
+- Results update
+- Indicator changes to: "✨ Fresh results just now"
+- "Hillary can always force refresh if she wants latest data"
+
+**Step 5: Show Cache Persistence**
+- Optional: Close browser tab, reopen app
+- Search same location again
+- Still shows cached results (persists across sessions)
+
+### Talking Points:
+
+**The Problem:**
+"Hillary walks the same neighborhoods repeatedly:
+- Monday: Check out Evanston restaurants
+- Tuesday: Return to follow up on rejections
+- Friday: Same area again for a different street
+
+Each time searching 'Evanston' takes 2-3 seconds. In winter cold, every second matters."
+
+**The Solution:**
+"Smart caching with 7-day TTL:
+- First search: Fetches from API, caches results
+- Repeat searches: Load from cache instantly (<100ms)
+- After 7 days: Auto-expires, fetches fresh
+- Manual override: 'Refresh' button anytime"
+
+**Visual Clarity:**
+"Two distinct indicators:
+- 📦 Blue box = Cached (with age display)
+- ✨ Green box = Fresh from API
+Hillary always knows if data is cached or current"
+
+**Business Value:**
+"Speed improvements:
+- Cached: Instant (<100ms)
+- Fresh: 2-3 seconds
+- **Time saved per week:** If Hillary searches same location 4 times = ~10 seconds saved
+
+Cost savings:
+- First search: ~$0.001
+- Cached searches: $0
+- **Monthly savings:** ~$0.01-0.02 (minimal but accumulates)
+
+Workflow benefits:
+- No waiting in cold
+- Instant results feel magical
+- Can always refresh for critical updates"
+
+**Why 7 Days?**
+"Restaurant landscape changes slowly:
+- New restaurants don't open daily
+- Hillary typically revisits weekly
+- 7 days balances freshness with speed
+- Manual refresh always available"
+
+**Cache Intelligence:**
+"Handles GPS drift:
+- Search at 42.048, -87.683 one day
+- Search at 42.052, -87.680 next day
+- System recognizes same location (rounds to 2 decimals)
+- Uses same cache!"
+
+### Key Message:
+"This is optimization for Hillary's real workflow. She doesn't search random locations - she walks territory repeatedly. The system learns this pattern and makes repeat visits instant. Small detail, big quality-of-life improvement."
+
+---
+
 ## 🎯 Other Features to Mention (Quick Hits)
 
 ### Walking Directions
@@ -586,15 +686,16 @@ Use this as a script outline:
 - [ ] **TTS Demo** - Play audio, show speed controls (1 min)
 - [ ] **Voice Notes** - Record 2 notes with realistic content (1 min)
 - [ ] **Persistence Test** - Restart server, show notes survived (1 min)
-- [ ] **Pitch Refinement** - Navigate to page 2, show 2 personas, TTS (2 min)
+- [ ] **Pitch Refinement** - Navigate to page 2, show personas including Walking (2 min)
 - [ ] **Micro-Refinements** - Apply Shorten and Strong Opener (1 min)
 - [ ] **Save Pitch** - Save refined pitch, show success message (30 sec)
 - [ ] **Load Saved Pitch** - Navigate away, return, load from Page 2 (1 min)
 - [ ] **Multiple Personas** - Save 2nd persona, show both saved pitch cards (1 min)
+- [ ] **Location Caching** - Search again, show instant load + refresh button (1 min)
 - [ ] **Quick Features** - Walking directions, rejection memory (30 sec)
 - [ ] **Closing** - ROI, technical stack, roadmap (1 min)
 
-**Total: ~15 minutes**
+**Total: ~16 minutes**
 
 ---
 

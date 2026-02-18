@@ -446,24 +446,26 @@
         }
 
         .refinement-buttons {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-top: 15px;
         }
 
         .btn-refinement {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 15px;
-            padding: 15px;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px 10px;
             background: white;
             border: 2px solid #ddd;
             border-radius: 8px;
             cursor: pointer;
-            text-align: left;
+            text-align: center;
             transition: all 0.2s;
-            width: 100%;
+            min-height: 100px;
         }
 
         .btn-refinement:hover {
@@ -478,7 +480,7 @@
         }
 
         .persona-icon {
-            font-size: 32px;
+            font-size: 36px;
             flex-shrink: 0;
         }
 
@@ -486,6 +488,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            text-align: center;
         }
 
         .persona-title {
@@ -726,7 +729,11 @@
         <div id="restaurant-list-screen" class="section hidden">
             <button id="change-location-btn" class="btn back-btn">📍 Change Location</button>
             <h2>Nearby Prospects</h2>
-            <p id="search-info" style="color: #666; margin-bottom: 15px;"></p>
+            <p id="search-info" style="color: #666; margin-bottom: 10px;"></p>
+
+            <!-- Cache Indicator & Refresh Button -->
+            <div id="cache-indicator"></div>
+
             <p id="memory-info" style="font-size: 0.85em; color: #888; margin-bottom: 10px;">
                 <span id="memory-stats"></span>
                 <a href="#" onclick="event.preventDefault(); viewRejectedRestaurants();" style="color: #666; text-decoration: underline; margin-left: 10px;">View list</a>
@@ -811,14 +818,24 @@
             </div>
         </div>
 
-        <!-- Pitch Refinement Screen (Page 2) -->
+        <!-- Pitch Refinement Screen (Page 3) -->
         <div id="refinement-screen" class="section pitch-view hidden">
             <button id="back-to-pitch-btn" class="btn back-btn">← Back to Original Pitch</button>
 
             <!-- Restaurant Info Summary -->
             <div id="refinement-restaurant-info" style="margin-bottom: 20px;">
                 <h2 id="refinement-restaurant-name"></h2>
-                <p id="refinement-restaurant-address" style="color: #666;"></p>
+                <p id="refinement-restaurant-address" style="color: #666; margin-bottom: 10px;"></p>
+
+                <!-- Quick Actions at Top of Page 3 -->
+                <div id="refinement-quick-actions" style="display: flex; gap: 8px; margin-bottom: 15px;">
+                    <button id="refinement-directions-btn" class="btn btn-small" style="flex: 1; background: #4a90e2; color: white;">
+                        🗺️ Directions
+                    </button>
+                    <button id="refinement-reject-btn" class="btn btn-small btn-reject" style="flex: 1;">
+                        ❌ Not Interested
+                    </button>
+                </div>
             </div>
 
             <!-- Refinement Selector -->
@@ -829,27 +846,35 @@
                 </p>
 
                 <div class="refinement-buttons">
+                    <button class="btn-refinement" data-persona="walking">
+                        <span class="persona-icon">🚶</span>
+                        <div class="persona-text">
+                            <span class="persona-title">Walking (20s)</span>
+                            <span class="persona-desc">Quick version to memorize</span>
+                        </div>
+                    </button>
+
                     <button class="btn-refinement" data-persona="chef">
                         <span class="persona-icon">🧑‍🍳</span>
                         <div class="persona-text">
-                            <span class="persona-title">Chef / Kitchen Staff</span>
-                            <span class="persona-desc">Technical, culinary-focused, ingredient talk</span>
+                            <span class="persona-title">Chef</span>
+                            <span class="persona-desc">Technical, culinary talk</span>
                         </div>
                     </button>
 
                     <button class="btn-refinement" data-persona="manager">
                         <span class="persona-icon">👔</span>
                         <div class="persona-text">
-                            <span class="persona-title">Owner / Manager</span>
-                            <span class="persona-desc">Business ROI, margins, menu differentiation</span>
+                            <span class="persona-title">Manager</span>
+                            <span class="persona-desc">Business ROI, margins</span>
                         </div>
                     </button>
 
                     <button class="btn-refinement" data-persona="gatekeeper">
                         <span class="persona-icon">🎯</span>
                         <div class="persona-text">
-                            <span class="persona-title">Host / Front Desk</span>
-                            <span class="persona-desc">Quick pitch to reach decision maker</span>
+                            <span class="persona-title">Host</span>
+                            <span class="persona-desc">Quick gatekeeper pitch</span>
                         </div>
                     </button>
                 </div>
@@ -959,6 +984,11 @@
         // Rejected Restaurants Learning System
         const REJECTED_RESTAURANTS_KEY = 'happy_pastures_rejected_restaurants';
         const MAX_REJECTED_ITEMS = 200; // Store up to 200 rejections
+
+        // Location Cache System
+        const LOCATION_CACHE_KEY = 'happy_pastures_location_cache';
+        const CACHE_TTL_DAYS = 7; // Cache expires after 7 days
+        let currentCacheInfo = null; // Track if current results are cached
 
         // Text-to-Speech State
         let ttsUtterance = null;
@@ -1162,6 +1192,41 @@
             }, 1200);
         }
 
+        // Reject restaurant from pitch or refinement screen (Page 2 or 3)
+        function rejectRestaurantFromPitch(name, lat, lon) {
+            // Create restaurant object for rejection
+            const restaurant = {
+                name: name,
+                latitude: lat,
+                longitude: lon,
+                address: currentRestaurantData.address || 'Address not available'
+            };
+
+            // Save to rejection memory
+            saveRejectedRestaurant(restaurant);
+
+            // Show confirmation and navigate back
+            alert(`✓ "${name}" added to rejection memory and won't appear in future searches.`);
+
+            // Navigate back to restaurant list
+            const pitchScreen = document.getElementById('pitch-screen');
+            const refinementScreen = document.getElementById('refinement-screen');
+
+            pitchScreen.classList.remove('active');
+            pitchScreen.classList.add('hidden');
+            refinementScreen.classList.remove('active');
+            refinementScreen.classList.add('hidden');
+
+            restaurantListScreen.classList.remove('hidden');
+
+            // Update rejection count in UI
+            const totalRejected = getRejectedCount();
+            const memoryStats = document.getElementById('memory-stats');
+            if (memoryStats) {
+                memoryStats.textContent = `🧠 ${totalRejected} restaurants in rejection memory`;
+            }
+        }
+
         // DOM elements
         const gpsBtn = document.getElementById('gps-btn');
         const addressBtn = document.getElementById('address-btn');
@@ -1247,14 +1312,89 @@
             }
         });
 
-        // Search restaurants
-        async function searchRestaurants(lat, lon) {
+        // ===== LOCATION CACHE FUNCTIONS =====
+
+        function getCacheKey(lat, lon) {
+            // Create unique key for location (rounded to 2 decimals to handle minor GPS drift)
+            return `loc_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+        }
+
+        function getCachedResults(lat, lon) {
+            const cache = JSON.parse(localStorage.getItem(LOCATION_CACHE_KEY) || '{}');
+            const key = getCacheKey(lat, lon);
+            const cached = cache[key];
+
+            if (!cached) return null;
+
+            // Check if cache is expired (> 7 days)
+            const cacheDate = new Date(cached.timestamp);
+            const now = new Date();
+            const daysSinceCached = (now - cacheDate) / (1000 * 60 * 60 * 24);
+
+            if (daysSinceCached > CACHE_TTL_DAYS) {
+                // Cache expired, remove it
+                delete cache[key];
+                localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(cache));
+                return null;
+            }
+
+            return cached;
+        }
+
+        function saveCacheResults(lat, lon, data) {
+            const cache = JSON.parse(localStorage.getItem(LOCATION_CACHE_KEY) || '{}');
+            const key = getCacheKey(lat, lon);
+
+            cache[key] = {
+                timestamp: new Date().toISOString(),
+                lat: lat,
+                lon: lon,
+                data: data
+            };
+
+            localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(cache));
+        }
+
+        function getCacheAge(timestamp) {
+            const cacheDate = new Date(timestamp);
+            const now = new Date();
+            const hoursSince = (now - cacheDate) / (1000 * 60 * 60);
+            const daysSince = Math.floor(hoursSince / 24);
+
+            if (daysSince === 0) {
+                const hours = Math.floor(hoursSince);
+                if (hours === 0) return 'just now';
+                return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+            }
+            return `${daysSince} day${daysSince === 1 ? '' : 's'} ago`;
+        }
+
+        // Search restaurants (with caching)
+        async function searchRestaurants(lat, lon, forceRefresh = false) {
             currentLocation = { lat, lon };
 
             locationScreen.classList.add('hidden');
             loadingScreen.classList.remove('hidden');
 
             try {
+                // Check cache first (unless force refresh)
+                if (!forceRefresh) {
+                    const cached = getCachedResults(lat, lon);
+                    if (cached) {
+                        console.log('📦 Loading from cache...');
+                        restaurants = cached.data.prospects;
+                        currentCacheInfo = {
+                            cached: true,
+                            timestamp: cached.timestamp,
+                            age: getCacheAge(cached.timestamp)
+                        };
+                        displayRestaurants(cached.data);
+                        return;
+                    }
+                }
+
+                // No cache or force refresh - fetch from API
+                console.log('🔄 Fetching fresh results from API...');
                 const response = await fetch(
                     `${API_BASE}/api/prospects?lat=${lat}&lon=${lon}&limit=20`
                 );
@@ -1265,6 +1405,15 @@
 
                 const data = await response.json();
                 restaurants = data.prospects;
+
+                // Save to cache
+                saveCacheResults(lat, lon, data);
+
+                currentCacheInfo = {
+                    cached: false,
+                    timestamp: new Date().toISOString(),
+                    age: 'just now'
+                };
 
                 displayRestaurants(data);
             } catch (error) {
@@ -1309,6 +1458,37 @@
                 infoText += ` • ${filters.join(', ')}`;
             }
             document.getElementById('search-info').textContent = infoText;
+
+            // Add cache indicator and refresh button
+            const cacheIndicator = document.getElementById('cache-indicator');
+            if (currentCacheInfo && currentCacheInfo.cached) {
+                cacheIndicator.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: #e3f2fd; padding: 10px 15px; border-radius: 6px; margin: 10px 0; border-left: 3px solid #2196F3;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.2em;">📦</span>
+                            <span style="color: #1976D2; font-size: 0.9em;">
+                                <strong>Cached results</strong> from ${currentCacheInfo.age}
+                            </span>
+                        </div>
+                        <button id="refresh-list-btn" class="btn btn-small" style="background: #2196F3; color: white; padding: 8px 15px; font-size: 0.85em;">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                `;
+                // Add refresh button handler
+                document.getElementById('refresh-list-btn').addEventListener('click', () => {
+                    if (currentLocation) {
+                        searchRestaurants(currentLocation.lat, currentLocation.lon, true);
+                    }
+                });
+            } else {
+                cacheIndicator.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px; background: #e8f5e9; padding: 8px 15px; border-radius: 6px; margin: 10px 0; border-left: 3px solid #4CAF50;">
+                        <span style="font-size: 1.1em;">✨</span>
+                        <span style="color: #2E7D32; font-size: 0.85em;">Fresh results ${currentCacheInfo ? currentCacheInfo.age : ''}</span>
+                    </div>
+                `;
+            }
 
             // Update memory stats
             const totalRejected = getRejectedCount();
@@ -1395,6 +1575,34 @@
 
         // Show sales pitch
         async function showPitch(restaurant) {
+            // CHECK FOR SAVED PITCHES FIRST (saves API costs!)
+            const allSavedPitches = JSON.parse(localStorage.getItem(SAVED_PITCHES_KEY) || '{}');
+            const baseKey = `${restaurant.name.toLowerCase().trim()}_${restaurant.latitude.toFixed(2)}_${restaurant.longitude.toFixed(2)}`;
+
+            const savedPitches = [];
+            ['walking', 'chef', 'manager', 'gatekeeper'].forEach(persona => {
+                const key = `${baseKey}_${persona}`;
+                if (allSavedPitches[key]) {
+                    savedPitches.push({
+                        persona: persona,
+                        label: getPersonaLabel(persona),
+                        data: allSavedPitches[key]
+                    });
+                }
+            });
+
+            // If saved pitches exist, show choice screen
+            if (savedPitches.length > 0) {
+                showSavedPitchChoice(restaurant, savedPitches);
+                return;
+            }
+
+            // No saved pitches - generate new pitch
+            generateNewPitch(restaurant);
+        }
+
+        // Generate new pitch (API call)
+        async function generateNewPitch(restaurant) {
             restaurantListScreen.classList.add('hidden');
             pitchScreen.classList.add('active');
 
@@ -1428,15 +1636,115 @@
             }
         }
 
+        // Show choice: Load saved pitch or generate new
+        function showSavedPitchChoice(restaurant, savedPitches) {
+            restaurantListScreen.classList.add('hidden');
+            pitchScreen.classList.add('active');
+
+            const pitchContent = document.getElementById('pitch-content');
+            const pitchLoading = document.getElementById('pitch-loading');
+
+            pitchContent.innerHTML = '';
+            pitchLoading.classList.add('hidden');
+
+            let html = `
+                <h2 style="margin-bottom: 5px;">${restaurant.name}</h2>
+                <p style="color: #666; margin-bottom: 10px; font-size: 0.9em;">📍 ${restaurant.address}</p>
+
+                <!-- Quick Actions at Top -->
+                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                    <button onclick="getDirections(${restaurant.latitude}, ${restaurant.longitude}, '${restaurant.name.replace(/'/g, "\\'")}')"
+                            class="btn btn-small" style="flex: 1; background: #4a90e2; color: white;">
+                        🗺️ Directions
+                    </button>
+                    <button onclick="rejectRestaurantFromPitch('${restaurant.name.replace(/'/g, "\\'")}', ${restaurant.latitude}, ${restaurant.longitude})"
+                            class="btn btn-small btn-reject" style="flex: 1;">
+                        ❌ Not Interested
+                    </button>
+                </div>
+
+                <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid #2c5f2d;">
+                    <div style="color: #2c5f2d; font-weight: bold; font-size: 1em; margin-bottom: 5px;">💾 You Have Saved Pitches!</div>
+                    <p style="color: #555; margin-bottom: 12px; font-size: 0.85em;">Load a saved pitch (free) or generate a fresh one ($0.05)</p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            `;
+
+            savedPitches.forEach(saved => {
+                const savedDate = new Date(saved.data.saved_at);
+                const dateStr = savedDate.toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+
+                html += `
+                    <button class="btn load-saved-choice-btn" data-persona="${saved.persona}"
+                            style="background: white; color: #2c5f2d; border: 2px solid #2c5f2d; padding: 10px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; min-height: 70px;">
+                        <span style="font-size: 1.3em;">📖</span>
+                        <div style="font-weight: bold; font-size: 0.95em;">${saved.label}</div>
+                        <small style="color: #666; font-size: 0.8em;">${dateStr}</small>
+                    </button>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+
+                <button id="generate-fresh-btn" class="btn" style="background: #4a90e2; color: white; width: 100%; padding: 12px; font-size: 0.95em;">
+                    ✨ Generate Fresh Pitch ($0.05)
+                </button>
+
+                <button id="back-to-list-btn" class="btn" style="background: #ddd; color: #333; width: 100%; padding: 10px; margin-top: 8px; font-size: 0.9em;">
+                    ← Back to Restaurant List
+                </button>
+            `;
+
+            pitchContent.innerHTML = html;
+
+            // Set current restaurant for later use
+            currentRestaurantData = restaurant;
+
+            // Add event listeners
+            document.querySelectorAll('.load-saved-choice-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const persona = btn.dataset.persona;
+                    // Go directly to refinement screen with saved pitch loaded
+                    navigateToRefinementScreen();
+                    setTimeout(() => {
+                        loadAndDisplaySavedPitch(persona);
+                    }, 100);
+                });
+            });
+
+            document.getElementById('generate-fresh-btn').addEventListener('click', () => {
+                generateNewPitch(restaurant);
+            });
+
+            document.getElementById('back-to-list-btn').addEventListener('click', () => {
+                pitchScreen.classList.remove('active');
+                restaurantListScreen.classList.remove('hidden');
+            });
+        }
+
         // Display Asian cuisine warning
         function displayAsianCuisineWarning(warningData, restaurant) {
             const pitchContent = document.getElementById('pitch-content');
 
             pitchContent.innerHTML = `
                 <h2>${warningData.restaurant.name}</h2>
-                <p style="color: #666; margin-bottom: 20px;">
+                <p style="color: #666; margin-bottom: 10px;">
                     📍 ${warningData.restaurant.address}
                 </p>
+
+                <!-- Quick Actions at Top -->
+                <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                    <button onclick="getDirections(${restaurant.latitude}, ${restaurant.longitude}, '${warningData.restaurant.name.replace(/'/g, "\\'")}')"
+                            class="btn btn-small" style="flex: 1; background: #4a90e2; color: white;">
+                        🗺️ Directions
+                    </button>
+                    <button onclick="rejectRestaurantFromPitch('${warningData.restaurant.name.replace(/'/g, "\\'")}', ${restaurant.latitude}, ${restaurant.longitude})"
+                            class="btn btn-small btn-reject" style="flex: 1;">
+                        ❌ Not Interested
+                    </button>
+                </div>
 
                 <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 4px; margin: 20px 0;">
                     <h3 style="color: #856404; margin-top: 0;">⚠️ Asian Cuisine Detected</h3>
@@ -1544,10 +1852,22 @@
 
             pitchContent.innerHTML = `
                 <h2>${pitch.restaurant.name}</h2>
-                <p style="color: #666; margin-bottom: 20px;">
+                <p style="color: #666; margin-bottom: 10px;">
                     📍 ${pitch.restaurant.address}<br>
                     📞 ${pitch.restaurant.phone || 'No phone'}
                 </p>
+
+                <!-- Quick Actions at Top of Page 2 -->
+                <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                    <button onclick="getDirections(${restaurant.latitude}, ${restaurant.longitude}, '${pitch.restaurant.name.replace(/'/g, "\\'")}')"
+                            class="btn btn-small" style="flex: 1; background: #4a90e2; color: white;">
+                        🗺️ Directions
+                    </button>
+                    <button onclick="rejectRestaurantFromPitch('${pitch.restaurant.name.replace(/'/g, "\\'")}', ${restaurant.latitude}, ${restaurant.longitude})"
+                            class="btn btn-small btn-reject" style="flex: 1;">
+                        ❌ Not Interested
+                    </button>
+                </div>
 
                 <div class="pitch-section">
                     <h4>🧀 Recommended Product</h4>
@@ -1633,7 +1953,7 @@
             const baseKey = `${restaurant.name.toLowerCase().trim()}_${restaurant.latitude.toFixed(2)}_${restaurant.longitude.toFixed(2)}`;
 
             const savedPersonas = [];
-            ['chef', 'manager', 'gatekeeper'].forEach(persona => {
+            ['walking', 'chef', 'manager', 'gatekeeper'].forEach(persona => {
                 const key = `${baseKey}_${persona}`;
                 if (allSavedPitches[key]) {
                     savedPersonas.push({
@@ -1672,6 +1992,25 @@
             // Load restaurant info
             document.getElementById('refinement-restaurant-name').textContent = currentRestaurantData.name;
             document.getElementById('refinement-restaurant-address').textContent = `📍 ${currentRestaurantData.address}`;
+
+            // Set up quick action buttons (Directions & Not Interested)
+            const directionsBtn = document.getElementById('refinement-directions-btn');
+            const rejectBtn = document.getElementById('refinement-reject-btn');
+
+            // Remove old listeners by cloning
+            const newDirectionsBtn = directionsBtn.cloneNode(true);
+            const newRejectBtn = rejectBtn.cloneNode(true);
+            directionsBtn.parentNode.replaceChild(newDirectionsBtn, directionsBtn);
+            rejectBtn.parentNode.replaceChild(newRejectBtn, rejectBtn);
+
+            // Add new listeners
+            document.getElementById('refinement-directions-btn').addEventListener('click', () => {
+                getDirections(currentRestaurantData.latitude, currentRestaurantData.longitude, currentRestaurantData.name);
+            });
+
+            document.getElementById('refinement-reject-btn').addEventListener('click', () => {
+                rejectRestaurantFromPitch(currentRestaurantData.name, currentRestaurantData.latitude, currentRestaurantData.longitude);
+            });
 
             // Hide refined pitch display initially
             document.getElementById('refined-pitch-display').classList.add('hidden');
@@ -1826,6 +2165,7 @@
 
         function getPersonaLabel(persona) {
             const labels = {
+                'walking': '🚶 Walking (20s)',
                 'chef': '🧑‍🍳 Chef/Kitchen Staff',
                 'manager': '👔 Owner/Manager',
                 'gatekeeper': '🎯 Host/Front Desk'
@@ -1992,7 +2332,7 @@
             const baseKey = `${currentRestaurantData.name.toLowerCase().trim()}_${currentRestaurantData.latitude.toFixed(2)}_${currentRestaurantData.longitude.toFixed(2)}`;
 
             const savedPitchData = [];
-            ['chef', 'manager', 'gatekeeper'].forEach(persona => {
+            ['walking', 'chef', 'manager', 'gatekeeper'].forEach(persona => {
                 const key = `${baseKey}_${persona}`;
                 if (allSavedPitches[key]) {
                     savedPitchData.push({
@@ -2010,27 +2350,27 @@
                     existingNotice.remove();
                 }
 
-                // Create notice with load buttons
+                // Create COMPACT notice with load buttons
                 const selector = document.querySelector('.refinement-selector');
                 const notice = document.createElement('div');
                 notice.id = 'saved-pitches-notice';
-                notice.style.cssText = 'background: #e8f5e8; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2c5f2d;';
+                notice.style.cssText = 'background: #e8f5e8; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #2c5f2d;';
 
-                let html = '<strong style="color: #2c5f2d; font-size: 1.1em;">💾 Your Saved Pitches:</strong><br><br>';
+                let html = '<div style="color: #2c5f2d; font-size: 0.9em; font-weight: bold; margin-bottom: 8px;">💾 Saved Pitches:</div>';
 
                 savedPitchData.forEach(saved => {
                     const savedDate = new Date(saved.data.saved_at);
-                    const dateStr = savedDate.toLocaleDateString() + ' ' + savedDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const dateStr = savedDate.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) + ' ' + savedDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
                     html += `
-                        <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 10px; border: 2px solid #2c5f2d;">
-                            <strong>${saved.label}</strong><br>
-                            <span style="color: #666; font-size: 0.85em;">Saved: ${dateStr}</span><br>
-                            <button class="btn load-saved-pitch-btn" data-persona="${saved.persona}"
-                                    style="margin-top: 10px; background: #2c5f2d; color: white; padding: 10px 15px;">
-                                📖 Load This Pitch
-                            </button>
-                        </div>
+                        <button class="btn load-saved-pitch-btn" data-persona="${saved.persona}"
+                                style="background: white; color: #2c5f2d; border: 1px solid #2c5f2d; padding: 8px 12px; margin-bottom: 6px; width: 100%; text-align: left; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${saved.label}</strong>
+                                <span style="color: #666; font-size: 0.85em; margin-left: 8px;">${dateStr}</span>
+                            </div>
+                            <span>📖</span>
+                        </button>
                     `;
                 });
 

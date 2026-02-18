@@ -49,7 +49,7 @@ This system helps Hillary sell $30-50/lb artisan cheese by finding high-probabil
 ### Tradeoff: Database vs. Stateless
 **Chose:** localStorage + stateless API
 **Sacrificed:** Server-side history, analytics, multi-device sync
-**Result:** Zero infrastructure, instant deployment, 200-restaurant rejection memory persists locally
+**Result:** Zero infrastructure, instant deployment, 200-restaurant rejection memory persists locally, location cache for instant repeat searches
 
 ### Proactive Features Despite Time Constraints
 - **Walking directions** - Google Maps integration saves Hillary time in winter
@@ -170,6 +170,69 @@ This system helps Hillary sell $30-50/lb artisan cheese by finding high-probabil
   - Persona refinement: ~$0.02 (Claude only)
   - Micro-refinement: ~$0.01 each
   - Load saved pitch: $0 (localStorage)
+
+### Location Cache Architecture (localStorage)
+
+**NEW Feature:** Smart caching for frequently searched locations
+
+**Storage Structure:**
+```javascript
+localStorage['happy_pastures_location_cache'] = {
+  "loc_42.05_-87.68": {
+    timestamp: "2026-02-18T10:00:00Z",
+    lat: 42.05,
+    lon: -87.68,
+    data: {
+      prospects: [...], // Full restaurant list
+      total: 18,
+      search_center: {lat, lon},
+      search_radius_km: 2.5
+    }
+  }
+}
+```
+
+**Key Design:**
+- Key format: `loc_{lat}_{lon}` (rounded to 2 decimals)
+- Handles GPS drift (42.048 and 42.052 → same cache key)
+- 7-day TTL (auto-expires stale data)
+- Full restaurant data cached (no partial results)
+
+**Cache Flow:**
+```
+User searches location
+  ↓
+Check cache for key
+  ↓
+If cached & < 7 days old:
+  → Load from localStorage (instant)
+  → Show "📦 Cached results from X days ago"
+  → Display prominent "🔄 Refresh" button
+  ↓
+If no cache or expired:
+  → Fetch from API (Geoapify + Claude)
+  → Save to cache with timestamp
+  → Show "✨ Fresh results just now"
+```
+
+**Benefits:**
+- **Speed:** <100ms load vs 2-3 seconds API call
+- **Cost:** $0 for repeat searches within 7 days
+- **Workflow:** Hillary revisits same neighborhoods frequently
+- **UX:** Instant results feel magical in winter cold
+
+**Cache Invalidation:**
+- Automatic: 7 days elapsed
+- Manual: User clicks "🔄 Refresh" button
+- Force refresh bypasses cache, fetches fresh data, updates cache
+
+**Why 7 Days?**
+- Restaurant landscape changes slowly
+- Balance between freshness and speed
+- Weekly route repetition common
+- Hillary can always force refresh for critical searches
+
+---
 
 ### Save Pitch Architecture (localStorage)
 

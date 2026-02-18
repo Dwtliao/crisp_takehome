@@ -49,10 +49,48 @@ This system does all five automatically.
 
 ---
 
+## 📦 Location Caching: Instant Repeat Searches
+
+**NEW Feature:** Smart caching for frequently visited locations
+
+### How It Works
+- **First search:** Results cached automatically with timestamp
+- **Repeat search:** Instant load from cache (<100ms vs 3 seconds)
+- **7-day TTL:** Cache auto-expires after 7 days for fresh data
+- **Prominent refresh:** "🔄 Refresh" button to manually fetch fresh results
+
+### Visual Indicators
+**Cached Results:**
+```
+📦 Cached results from 2 days ago    [🔄 Refresh]
+```
+
+**Fresh Results:**
+```
+✨ Fresh results just now
+```
+
+### Benefits
+- ⚡ **Speed:** Instant repeat searches (Hillary's time matters in winter!)
+- 💰 **Cost:** Free repeat searches within 7 days (~$0.001 saved per search)
+- 🗺️ **Workflow:** Hillary walks same neighborhoods multiple times
+- 🔄 **Control:** Manual refresh button when she wants fresh data
+
+**Example:** Search "Evanston, IL" on Monday → Returns Tuesday → Instant load!
+
+---
+
 ## 🔄 Pitch Refinement: Persona-Based Adaptation
 
 ### Multiple Pitch Versions for Different Audiences
 After generating the initial pitch, refine it for specific situations:
+
+**🚶 For Walking & Memorizing (NEW!)**
+- Ultra-short 20-second version
+- Natural, conversational flow
+- Easy to memorize while walking
+- Perfect for practicing en route
+- ~20 seconds spoken
 
 **🧑‍🍳 For Chef/Kitchen Staff**
 - Technical, culinary-focused language
@@ -191,7 +229,8 @@ Quick summary:
 - 🎯 Pre-set business rules (fine dining, $40/lb cheese compatible)
 - 🔊 Text-to-speech (listen to pitches hands-free via earbuds)
 - 🎤 Voice notes (dictate visit outcomes, saved permanently in localStorage)
-- 🔄 Pitch refinement (3 personas: Chef, Manager, Gatekeeper with separate TTS)
+- 🔄 Pitch refinement (4 personas: Walking, Chef, Manager, Host with separate TTS)
 - ✨ Micro-refinements (5 polish options: Shorten, Expand, Casual, Formal, Strong Opener)
 - 💾 Save & reuse pitches (zero cost on return visits, loads from localStorage)
+- 📦 Location caching (instant repeat searches, 7-day auto-expire, prominent refresh button)
 

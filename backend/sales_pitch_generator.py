@@ -356,6 +356,7 @@ Format as JSON:
         Refine an existing pitch for a specific audience persona
 
         This applies a "style filter" to reshape the pitch for different audiences:
+        - walking: Ultra-short 20-second version for memorizing while walking
         - chef: Technical, culinary-focused
         - manager: Business ROI, margins
         - gatekeeper: Quick pitch to reach decision maker
@@ -364,13 +365,32 @@ Format as JSON:
             original_pitch: The full text of the original pitch
             restaurant_name: Name of the restaurant
             cheese_name: Name of the cheese product
-            persona: Target audience ('chef', 'manager', 'gatekeeper')
+            persona: Target audience ('walking', 'chef', 'manager', 'gatekeeper')
 
         Returns:
             Dict with refined_text and persona
         """
         # Refinement prompt templates for each persona
         templates = {
+            'walking': f"""You are helping a cheese salesperson create a quick walking-and-talking version of their pitch.
+
+Take this sales pitch and condense it into a 20-second version that is:
+- Natural and conversational (like talking to a friend)
+- Easy to memorize (simple structure, memorable phrases)
+- Covers only the most essential points
+- Flows smoothly when spoken aloud
+- Perfect for practicing while walking to the restaurant
+
+Think of this as the "elevator pitch" version - what would you say if you only had 20 seconds?
+
+Original pitch:
+{original_pitch}
+
+Create a 20-second walking-and-talking version. Format it as natural speech (not bullet points).
+Make it flow like one continuous thought that's easy to remember and deliver casually.
+
+Focus on: The hook, the key benefit, and a simple ask. That's it.""",
+
             'chef': f"""You are helping a cheese salesperson refine their pitch to speak directly to a CHEF or kitchen staff.
 
 Take this sales pitch and rewrite it to be:
@@ -427,7 +447,7 @@ Avoid: Long explanations, sales pressure, anything that takes more than 30 secon
 
         # Get the template for this persona
         if persona not in templates:
-            raise ValueError(f"Unknown persona: {persona}. Must be 'chef', 'manager', or 'gatekeeper'")
+            raise ValueError(f"Unknown persona: {persona}. Must be 'walking', 'chef', 'manager', or 'gatekeeper'")
 
         prompt = templates[persona]
 
