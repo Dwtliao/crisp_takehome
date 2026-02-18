@@ -46,3 +46,6 @@ htmlcov/
 
 # Logs
 *.log
+
+# Demo packages (contain API keys - DO NOT COMMIT!)
+*.zip
