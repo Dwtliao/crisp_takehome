@@ -130,22 +130,44 @@ Found 18 prospects (sorted by distance) • 6 filtered, 3 previously rejected
 
 ---
 
-## 💡 Why This Matters
+## 💡 Why This Matters - Business Value
 
-### Time Saved
-- No standing in the cold reading Asian restaurant menus
-- No wasted pitches on places that won't buy
-- No seeing the same rejected restaurants twice
+### Time Saved = Money Earned
+- **No standing in winter cold** reading Asian restaurant menus
+- **No wasted pitches** on fast food chains that won't buy $40/lb cheese
+- **No repeat visits** - rejection memory learns from Hillary's decisions
+- **Walking directions** optimize route planning block-by-block
 
-### Cost Saved
-- Layer 3 prevents ~$0.05/restaurant in unnecessary API calls
+### Cost Saved = Higher Margins
+- Layer 3 Asian detection prevents ~$0.05/restaurant in unnecessary API calls
 - If Hillary checks 20 restaurants/day and 4 are Asian: **$0.20/day saved**
-- Over a month: **$6/month saved**
+- Over a month: **$6/month saved** (10% of Geoapify paid tier)
+- **ROI matters** when bootstrapping a cheese business
+
+### Business-Focused Intelligence
+- **Pre-set rules filter for affordability** - Targets $20+ entrees, upscale signals
+- **Dairy-compatibility first** - Excludes Asian cuisine (cheese doesn't pair)
+- **High-probability customers only** - Fine dining, European, steakhouses
+- **Learns preferences** - Rejection memory builds personalized prospect list
+
+### Tradeoffs We Made
+**Chose: Business value over technical elegance**
+- Simple keyword filtering + LLM (fast, works)
+- Not: Semantic embeddings, neural networks (slower, overkill for MVP)
+
+**Chose: Proactive features over perfect UI**
+- Walking directions, rejection memory, override options
+- Not: Beautiful animations, React components
+
+**Chose: Hillary's time over API costs**
+- Google Places ($0.032) works reliably
+- Not: "Free" APIs (Yelp, Foursquare) that wasted 5 hours debugging
 
 ### Learning Over Time
 - System gets smarter as Hillary uses it
 - Rejection memory builds a personalized blacklist
 - Works even if restaurant names change slightly
+- **Data compounds** - 200 rejections = never seeing those restaurants again
 
 ---
 
@@ -184,15 +206,32 @@ localStorage.removeItem('happy_pastures_rejected_restaurants');
 
 ---
 
-## 📈 Future Enhancements
+## 📈 What We'd Improve Next
 
-Potential improvements:
+### Immediate Wins (Week 1)
+1. **Route optimization** - Sort by walking distance from *current* location (not search center)
+2. **Success tracking** - Mark which pitches converted to sales
+3. **Batch overnight** - Pre-generate pitches for tomorrow's planned route
+4. **Export to CSV** - Share prospect list with team
 
-1. **Semantic filtering:** Use embeddings to detect Asian cuisine by menu similarity
-2. **Success tracking:** Learn which restaurants actually bought cheese
-3. **Collaborative learning:** Share rejection data across all sales reps
-4. **Offline mode:** Cache rejection list for areas without internet
-5. **Analytics:** "You've saved $47 in API costs this month!"
+### Short-term (Month 1)
+1. **Semantic filtering** - Use embeddings to detect Asian cuisine by menu similarity (beyond keywords)
+2. **Collaborative learning** - Share rejection data across Hillary + future sales reps
+3. **Visit notes** - "Called 2/15, follow up next week"
+4. **Offline mode** - Cache prospects for areas without cell coverage
+
+### Long-term (Quarter 1)
+1. **Success-based learning** - Fine-tune LLM prompts based on which pitches actually closed
+2. **Multi-cheese bundles** - "Pasture Bloom for appetizers, Smoky Alder for mains"
+3. **Predictive scoring** - ML model predicts conversion probability
+4. **Analytics dashboard** - "You've saved $147 in wasted visits this month"
+5. **CRM integration** - Sync with Salesforce/HubSpot for enterprise sales teams
+
+### What We Won't Build (And Why)
+- ❌ **Perfect UI** - Business value > aesthetics
+- ❌ **Real-time sync** - localStorage sufficient for solo operation
+- ❌ **Advanced reporting** - Excel export handles MVP analytics
+- ❌ **Mobile native app** - Web app works on phone browsers
 
 ---
 

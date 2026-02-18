@@ -2,49 +2,80 @@
 
 **Happy Pastures Creamery Restaurant Prospecting System**
 
-## Overview (498 words)
+## Overview
 
-This system solves Hillary's core problem: finding compatible restaurants and creating effective sales pitches without standing in the cold reading menus. The architecture balances **pragmatism** with **sophistication** - using AI where it adds genuine value, simple rules where they suffice.
+This system helps Hillary sell $30-50/lb artisan cheese by finding high-probability customers (fine dining restaurants) and generating AI-powered sales pitches. The architecture prioritizes **working immediately** over perfection, **cost-effectiveness** over enterprise features, and **business value** over technical sophistication.
 
-### Technology Choices & Rationale
+---
 
-**Backend: FastAPI + Python**
+## Technology Choices: What Worked, What Didn't
 
-FastAPI provides a modern, async REST API with automatic OpenAPI documentation. Python was chosen for its rich AI/ML ecosystem and rapid development cycle. The backend exposes two endpoints: `/api/prospects` for listing nearby restaurants with quick cheese matches, and `/api/pitch` for generating detailed, AI-powered sales pitches on-demand.
+### API Selection - Learning from Failure
 
-**Frontend: Vanilla HTML/JavaScript**
+**Yelp Fusion API** - Dead End ($299/month business tier required, wasted 2 hours)
+**Foursquare Places API** - Dead End (confusing v2/v3 migration, authentication failures, wasted 3 hours)
+**Google Places API (New)** - ✅ **Worked first try**. Yes, it costs money ($0.032/lookup), but reliability matters when you have limited time. Sometimes "supposedly free" APIs are expensive time sinks.
 
-This was a **pragmatic decision** over React or Vue. With ~400 lines of readable code, zero build steps, and instant deployment, it demonstrates time-aware engineering. The mobile-first responsive design uses HTML5 Geolocation API for GPS access (Hillary's primary use case) with address input as fallback. No framework means no dependency management, no compilation, and trivial debugging - perfect for a take-home project that reviewers need to run quickly.
+**Geoapify Places** - ✅ **Perfect for MVP**. Free tier (3,000 requests/day) provides geolocation search and rich category data. Critical for bootstrapping: Hillary doesn't need to pay until the business proves itself. When she scales, upgrading is straightforward.
 
-**AI Architecture - Three Intelligent Layers:**
+### Frontend: Vanilla HTML/JS - Intentional Simplicity
 
-**Layer 1: Restaurant Discovery (Geoapify)**
-Geolocation-based search within 2.5km walking distance returns 150+ raw prospects. The free tier handles development needs, and the API provides rich categorical data essential for filtering.
+**No React, no Vue, no build step.** This wasn't laziness - it was pragmatism under time constraints. 500 lines of readable JavaScript that works on any browser, deploys instantly, and reviewers can run without `npm install`. Mobile-first GPS integration (Hillary's walking door-to-door) with address fallback. The UI is simple but **proactive**: walking directions button, rejection memory, override options for edge cases. We built what Hillary needs, not what looks impressive in a portfolio.
 
-**Layer 2: Quality Filtering (Claude Haiku)**
-Batch processing evaluates 20 restaurants simultaneously, dramatically reducing API calls. The LLM filters out fast food chains, casual diners, and incompatible cuisines, reducing 150 prospects to ~20-25 high-quality targets. This costs approximately $0.001 per restaurant - negligible compared to the value of Hillary's time.
+---
 
-**Layer 3: Sales Pitch Generation (Claude Sonnet 4.5)**
-**On-demand only** - this is a critical cost optimization. Rather than generating pitches for all 20 prospects upfront, we wait until Hillary selects a specific restaurant. The system then fetches live menu data via Google Places API ($0.032), analyzes customer reviews for menu items, matches the appropriate cheese product, and generates a customized pitch (~$0.02). Total cost per selected prospect: ~$0.053.
+## Architecture: Three-Layer Intelligence
 
-**Data Enrichment: Google Places API**
+**Layer 1: Discovery (Geoapify)** - 2.5km walking radius returns 150 raw prospects. Free tier handles MVP scale.
 
-Live menu data comes from analyzing actual customer reviews - not static menu listings. When someone mentions "the lobster bisque" or "wood-fired pizza," those become concrete pairing opportunities in the sales pitch. This human signal is far more valuable than generic menu categories.
+**Layer 2: Quality Filter (Claude Haiku)** - Batch processes 20 restaurants simultaneously. **Business-focused rules**: excludes Asian cuisine (dairy-incompatible), fast food, and casual chains. Reduces 150 → 20 high-probability prospects who can afford $40/lb cheese. Cost: ~$0.001/restaurant.
 
-### Key Design Decisions
+**Layer 3: Sales Pitch (Claude Sonnet 4.5 + Google Places)** - **On-demand only** (critical cost optimization). When Hillary selects a restaurant, we fetch live menu data from Google Places reviews ($0.032), analyze dishes, match cheese, generate customized pitch (~$0.02). Total: $0.053 per selected prospect. She only pays for restaurants she's actually visiting.
 
-**Cost Optimization Through Lazy Loading**: The expensive operations (Google Places + Claude Sonnet) happen only when Hillary selects a restaurant. This means she sees the prospect list immediately (fast + cheap), then generates the detailed pitch only for restaurants she's actually going to visit.
+---
 
-**Two-Tier Cheese Matching**: Fast rule-based matching (French/Italian → Pasture Bloom, Pub/American → Smoky Alder) provides instant recommendations in the list view. Sophisticated AI analysis with menu review understanding powers the detailed pitch. Best of both worlds: speed where it matters, intelligence where it counts.
+## Key Tradeoffs & Design Decisions
 
-**Stateless API Design**: No database, no sessions, no authentication (for v1). This kept development time to one day while maintaining a clear path to production - add PostgreSQL, implement JWT auth, deploy to cloud. The core architecture doesn't change.
+### Tradeoff: Speed vs. Polish
+**Chose:** Ship working product in constrained time
+**Sacrificed:** React UI, comprehensive testing, offline mode
+**Result:** Hillary can use it today, not next month
 
-### What Would Come Next
+### Tradeoff: Cost vs. Reliability
+**Chose:** Google Places ($0.032) over "free" alternatives
+**Sacrificed:** $0 API bill
+**Result:** Works reliably, no time wasted debugging flaky APIs
 
-**Phase 2**: Offline mode with cached prospects, visit tracking with notes, route optimization, success metrics tracking, batch overnight pitch generation.
+### Tradeoff: Database vs. Stateless
+**Chose:** localStorage + stateless API
+**Sacrificed:** Server-side history, analytics, multi-device sync
+**Result:** Zero infrastructure, instant deployment, 200-restaurant rejection memory persists locally
 
-**Production**: PostgreSQL for history, authentication, error monitoring (Sentry), rate limiting, HTTPS with proper CORS.
+### Proactive Features Despite Time Constraints
+- **Walking directions** - Google Maps integration saves Hillary time in winter
+- **Rejection memory** - Learns her preferences, never shows rejected restaurants again
+- **Asian cuisine warning** - Pre-pitch detection saves $0.05/restaurant on incompatible prospects
+- **Override option** - "Generate pitch anyway" button respects Hillary's judgment
+- **Pre-set business rules** - Filters for $20+ entrees, upscale signals, cheese-friendly cuisines
 
-**AI Enhancements**: Fine-tuned prompts based on successful sales, semantic embeddings for menu-cheese matching, multi-cheese bundle recommendations.
+---
 
-This architecture works because it's **immediately useful** (Hillary can use it today), **appropriately sophisticated** (AI where it helps, rules where they work), and has a **clear path to scale** (stateless design, cached data, on-demand generation).
+## What We'd Improve Next
+
+**Immediate (Week 1):** Route optimization (sort by walking distance from current location, not search center), success tracking (which pitches converted to sales?), batch overnight pitch generation for tomorrow's route.
+
+**Short-term (Month 1):** PostgreSQL for cross-device history, visit notes/follow-ups, offline mode with cached prospects, A/B test pitch variations.
+
+**Long-term (Quarter 1):** Fine-tune LLM prompts based on successful sales data, semantic embeddings for menu-cheese matching (beyond keywords), multi-cheese bundle recommendations, CRM integration.
+
+---
+
+## Why This Architecture Works
+
+1. **Immediately Useful** - Hillary uses it today, not after "Phase 2"
+2. **Cost-Conscious** - Free tier until revenue proves the model ($0.05/prospect when paying)
+3. **Business-Focused** - Every filter optimizes for high-probability customers
+4. **Pragmatically Sophisticated** - AI where it helps (pitch generation), rules where they work (category filtering)
+5. **Production-Ready Path** - Stateless design means adding PostgreSQL doesn't require rewrite
+
+This isn't the system we'd build with 6 months and a team. It's the system Hillary needs this winter to sell cheese profitably.

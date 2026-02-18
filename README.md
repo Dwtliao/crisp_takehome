@@ -86,12 +86,28 @@ Quick summary:
 
 ---
 
-## Time & Tradeoffs
+## Technology Choices & Tradeoffs
 
-**Time spent**: ~8 hours
+**What worked:**
+- ✅ **Google Places API** - Worked first try ($0.032/lookup, worth it)
+- ✅ **Geoapify** - Free tier perfect for MVP (3K requests/day)
+- ✅ **Vanilla HTML/JS** - Zero build time, instant deployment
+- ✅ **Claude AI** - Haiku for filtering ($0.001), Sonnet for pitches ($0.02)
 
-**Key tradeoffs**:
-- Simple HTML/JS over React (no build step)
-- On-demand pitch generation (cost savings)
-- Stateless API (faster to build)
+**What didn't work (time wasted):**
+- ❌ **Yelp Fusion API** - $299/month required (2 hours wasted)
+- ❌ **Foursquare Places** - Authentication failures, confusing docs (3 hours wasted)
+
+**Key tradeoffs:**
+- **Speed over polish** - Shipped in time constraints, vanilla JS not React
+- **Cost over "free"** - Google Places costs money but works reliably
+- **localStorage over database** - No infrastructure, 200-item rejection memory
+- **Business focus** - Every filter optimizes for high-probability customers ($20+ entrees, cheese-friendly cuisines)
+
+**Proactive features added:**
+- 🗺️ Walking directions (Google Maps integration)
+- ❌ Rejection memory (learns preferences)
+- ⚠️ Asian cuisine detection (saves $0.05/restaurant)
+- 🔄 Override option (respects Hillary's judgment)
+- 🎯 Pre-set business rules (fine dining, $40/lb cheese compatible)
 
