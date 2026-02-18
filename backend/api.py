@@ -273,6 +273,42 @@ async def get_full_pitch(
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
+class PitchRefinementRequest(BaseModel):
+    """Request to refine an existing pitch"""
+    original_pitch: str
+    restaurant_name: str
+    cheese_name: str
+    persona: str  # 'chef', 'manager', or 'gatekeeper'
+
+
+@app.post("/api/pitch/refine")
+async def refine_pitch(request: PitchRefinementRequest):
+    """
+    Refine an existing sales pitch for a specific persona/audience
+
+    Takes the original pitch and transforms it through a "style filter"
+    based on who the salesperson will be talking to:
+    - chef: Technical, culinary-focused
+    - manager: Business ROI, margins
+    - gatekeeper: Quick pitch to reach decision maker
+    """
+    try:
+        pitch_generator = SalesPitchGenerator(ANTHROPIC_API_KEY)
+
+        # Refine the pitch using persona-specific template
+        refined_pitch = pitch_generator.refine_pitch_for_persona(
+            original_pitch=request.original_pitch,
+            restaurant_name=request.restaurant_name,
+            cheese_name=request.cheese_name,
+            persona=request.persona
+        )
+
+        return refined_pitch
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error refining pitch: {str(e)}")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

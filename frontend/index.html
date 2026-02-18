@@ -431,6 +431,117 @@
             padding: 20px;
         }
 
+        /* Pitch Refinement */
+        .pitch-refinement {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            border-left: 4px solid #4a90e2;
+        }
+
+        .pitch-refinement h3 {
+            color: #2c5f2d;
+            margin-bottom: 8px;
+        }
+
+        .refinement-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .btn-refinement {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-refinement:hover {
+            border-color: #4a90e2;
+            background: #f8fbff;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+        }
+
+        .btn-refinement:active {
+            transform: translateY(0);
+        }
+
+        .persona-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .persona-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .persona-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .persona-desc {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .refined-pitch-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-left: 4px solid #4a90e2;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .refined-pitch-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8f2ff;
+        }
+
+        .refined-pitch-header h4 {
+            color: #4a90e2;
+            margin: 0;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-small:hover {
+            background: #555;
+        }
+
+        .refined-pitch-content {
+            color: #333;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
         .error {
             background: #f8d7da;
             color: #721c24;
@@ -583,6 +694,49 @@
             </div>
 
             <div id="pitch-content"></div>
+
+            <!-- Pitch Refinement Section -->
+            <div id="pitch-refinement" class="pitch-refinement hidden">
+                <h3>🔄 Refine This Pitch For:</h3>
+                <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+                    Choose who you'll be talking to for a tailored version
+                </p>
+
+                <div class="refinement-buttons">
+                    <button class="btn-refinement" data-persona="chef">
+                        <span class="persona-icon">🧑‍🍳</span>
+                        <div class="persona-text">
+                            <span class="persona-title">Chef / Kitchen Staff</span>
+                            <span class="persona-desc">Technical, culinary-focused, ingredient talk</span>
+                        </div>
+                    </button>
+
+                    <button class="btn-refinement" data-persona="manager">
+                        <span class="persona-icon">👔</span>
+                        <div class="persona-text">
+                            <span class="persona-title">Owner / Manager</span>
+                            <span class="persona-desc">Business ROI, margins, menu differentiation</span>
+                        </div>
+                    </button>
+
+                    <button class="btn-refinement" data-persona="gatekeeper">
+                        <span class="persona-icon">🎯</span>
+                        <div class="persona-text">
+                            <span class="persona-title">Host / Front Desk</span>
+                            <span class="persona-desc">Quick pitch to reach decision maker</span>
+                        </div>
+                    </button>
+                </div>
+
+                <div id="refined-pitch-container" class="refined-pitch-container hidden">
+                    <div class="refined-pitch-header">
+                        <h4 id="refined-pitch-label"></h4>
+                        <button id="reset-pitch-btn" class="btn-small">← Back to Original</button>
+                    </div>
+                    <div id="refined-pitch-content" class="refined-pitch-content"></div>
+                </div>
+            </div>
+
             <div id="pitch-loading" class="loading hidden">
                 <div class="spinner"></div>
                 <p>Generating your sales pitch...</p>
@@ -1253,6 +1407,135 @@
 
             // Initialize voice notes for this restaurant
             initializeVoiceNotes(restaurant);
+
+            // Initialize pitch refinement
+            initializePitchRefinement(pitch, restaurant);
+        }
+
+        // ===== PITCH REFINEMENT FUNCTIONS =====
+
+        let originalPitchData = null;
+        let originalPitchHTML = null;
+        let currentRestaurantData = null;
+
+        function initializePitchRefinement(pitch, restaurant) {
+            // Store original pitch data
+            originalPitchData = pitch;
+            originalPitchHTML = document.getElementById('pitch-content').innerHTML;
+            currentRestaurantData = restaurant;
+
+            // Show refinement section
+            const refinementSection = document.getElementById('pitch-refinement');
+            refinementSection.classList.remove('hidden');
+
+            // Hide refined pitch container initially
+            document.getElementById('refined-pitch-container').classList.add('hidden');
+
+            // Attach click handlers to refinement buttons
+            document.querySelectorAll('.btn-refinement').forEach(btn => {
+                // Remove old listeners by cloning
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+
+                newBtn.addEventListener('click', async () => {
+                    const persona = newBtn.dataset.persona;
+                    await refinePitch(persona);
+                });
+            });
+
+            // Reset button handler
+            const resetBtn = document.getElementById('reset-pitch-btn');
+            if (resetBtn) {
+                const newResetBtn = resetBtn.cloneNode(true);
+                resetBtn.parentNode.replaceChild(newResetBtn, resetBtn);
+
+                newResetBtn.addEventListener('click', () => {
+                    resetToOriginalPitch();
+                });
+            }
+        }
+
+        async function refinePitch(persona) {
+            const refinedContainer = document.getElementById('refined-pitch-container');
+            const refinedLabel = document.getElementById('refined-pitch-label');
+            const refinedContent = document.getElementById('refined-pitch-content');
+
+            // Show loading state
+            refinedContainer.classList.remove('hidden');
+            refinedLabel.textContent = `Refining pitch for ${getPersonaLabel(persona)}...`;
+            refinedContent.innerHTML = '<div class="loading"><div class="spinner"></div><p>Generating refined pitch...</p></div>';
+
+            try {
+                // Build the full pitch text to send for refinement
+                const fullPitchText = buildFullPitchText(originalPitchData);
+
+                // Call backend API
+                const response = await fetch(`${API_BASE}/api/pitch/refine`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        original_pitch: fullPitchText,
+                        restaurant_name: currentRestaurantData.name,
+                        cheese_name: originalPitchData.cheese.name,
+                        persona: persona
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to refine pitch');
+                }
+
+                const refinedPitch = await response.json();
+
+                // Display refined pitch
+                refinedLabel.textContent = `📝 Refined for: ${getPersonaLabel(persona)}`;
+                refinedContent.innerHTML = refinedPitch.refined_text;
+
+                // Scroll to refined pitch
+                refinedContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            } catch (error) {
+                console.error('Refinement error:', error);
+                refinedContent.innerHTML = '<div class="error">Failed to refine pitch. Please try again.</div>';
+            }
+        }
+
+        function buildFullPitchText(pitch) {
+            // Build a text representation of the pitch for refinement
+            let text = `Restaurant: ${pitch.restaurant.name}\n\n`;
+            text += `Cheese: ${pitch.cheese.name}\n`;
+            text += `${pitch.cheese.subtitle}\n\n`;
+            text += `Opening Hook:\n"${pitch.opening_hook}"\n\n`;
+            text += `Menu Pairings:\n`;
+            pitch.menu_pairings.forEach(p => {
+                text += `- ${p.dish}: ${p.why_it_works}\n`;
+            });
+            text += `\nKey Selling Points:\n`;
+            pitch.selling_points.forEach(p => {
+                text += `- ${p}\n`;
+            });
+            text += `\nCompetitive Advantage:\n${pitch.competitive_advantage}\n\n`;
+            text += `Call to Action:\n${pitch.call_to_action}`;
+            return text;
+        }
+
+        function getPersonaLabel(persona) {
+            const labels = {
+                'chef': '🧑‍🍳 Chef/Kitchen Staff',
+                'manager': '👔 Owner/Manager',
+                'gatekeeper': '🎯 Host/Front Desk'
+            };
+            return labels[persona] || persona;
+        }
+
+        function resetToOriginalPitch() {
+            // Hide refined pitch
+            document.getElementById('refined-pitch-container').classList.add('hidden');
+
+            // Scroll back to top of pitch
+            document.getElementById('pitch-content').scrollIntoView({ behavior: 'smooth' });
         }
 
         // Back button (from pitch to list)

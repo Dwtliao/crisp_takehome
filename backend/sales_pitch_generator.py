@@ -349,3 +349,117 @@ Format as JSON:
             },
             "confidence": "low"
         }
+
+    def refine_pitch_for_persona(self, original_pitch: str, restaurant_name: str,
+                                   cheese_name: str, persona: str) -> Dict[str, Any]:
+        """
+        Refine an existing pitch for a specific audience persona
+
+        This applies a "style filter" to reshape the pitch for different audiences:
+        - chef: Technical, culinary-focused
+        - manager: Business ROI, margins
+        - gatekeeper: Quick pitch to reach decision maker
+
+        Args:
+            original_pitch: The full text of the original pitch
+            restaurant_name: Name of the restaurant
+            cheese_name: Name of the cheese product
+            persona: Target audience ('chef', 'manager', 'gatekeeper')
+
+        Returns:
+            Dict with refined_text and persona
+        """
+        # Refinement prompt templates for each persona
+        templates = {
+            'chef': f"""You are helping a cheese salesperson refine their pitch to speak directly to a CHEF or kitchen staff.
+
+Take this sales pitch and rewrite it to be:
+- Technical and culinary-focused (talk about aging, melt point, flavor chemistry)
+- Peer-to-peer tone (chef talking to chef)
+- Emphasize creative applications and cooking techniques
+- Keep it conversational and under 60 seconds when spoken
+- Include specific culinary terms where appropriate
+
+Original pitch:
+{original_pitch}
+
+Rewrite this pitch for a chef. Format it as natural talking points (not a formal letter).
+Start with a friendly opening, then cover the technical cheese details, pairing ideas,
+and end with a soft ask to let their team "play with" a sample.
+
+Avoid: Business talk, pricing, margins, formal language""",
+
+            'manager': f"""You are helping a cheese salesperson refine their pitch to speak to a RESTAURANT OWNER or MANAGER.
+
+Take this sales pitch and rewrite it to be:
+- Business-focused with clear ROI
+- Professional tone but not stuffy
+- Emphasize margins, menu differentiation, local sourcing story
+- Include concrete numbers where possible
+- Keep it under 90 seconds when spoken
+
+Original pitch:
+{original_pitch}
+
+Rewrite this pitch for a manager/owner. Format it as natural talking points.
+Start with business credibility, then explain the value proposition (margin opportunity,
+local story, competitive advantage), and end with a clear next step (sample + pricing discussion).
+
+Focus on: How this makes them money and differentiates their menu.""",
+
+            'gatekeeper': f"""You are helping a cheese salesperson get past a HOST or FRONT DESK PERSON to reach the decision maker.
+
+Take this sales pitch and create a VERY SHORT version (30 seconds max) that:
+- Shows respect for the gatekeeper's time
+- Builds quick credibility (mention working with other local restaurants)
+- Makes a specific, easy ask (when can I drop off a sample?)
+- Provides an alternative (leave it with you to pass along)
+- Stays warm and friendly
+
+Original pitch:
+{original_pitch}
+
+Rewrite as an ultra-concise pitch for getting past the front desk. Format as natural dialogue.
+Structure: Brief intro → Quick credibility → Specific observation → Simple ask → Respectful acknowledgment
+
+Avoid: Long explanations, sales pressure, anything that takes more than 30 seconds to say"""
+        }
+
+        # Get the template for this persona
+        if persona not in templates:
+            raise ValueError(f"Unknown persona: {persona}. Must be 'chef', 'manager', or 'gatekeeper'")
+
+        prompt = templates[persona]
+
+        # Call Claude API
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+        }
+
+        data = {
+            "model": "claude-sonnet-4-5-20250929",
+            "max_tokens": 1500,
+            "messages": [{
+                "role": "user",
+                "content": prompt
+            }]
+        }
+
+        response = requests.post(url, headers=headers, json=data, timeout=60)
+
+        if response.status_code != 200:
+            raise Exception(f"API error: {response.status_code} - {response.text}")
+
+        result = response.json()
+        refined_text = result['content'][0]['text']
+
+        # Format for display
+        return {
+            "persona": persona,
+            "restaurant_name": restaurant_name,
+            "cheese_name": cheese_name,
+            "refined_text": refined_text
+        }
