@@ -125,7 +125,12 @@ async def get_prospects(
 
         # Step 2: Filter for quality
         if ANTHROPIC_API_KEY:
+            # First pass: LLM filtering (smart, context-aware)
             filtered = geo_client.filter_results_with_llm(results, target_type='upscale')
+
+            # Second pass: Keyword filtering (safety net for obvious fast food)
+            # This catches cases where LLM might miss obvious indicators like "Express", "To Go", etc.
+            filtered = geo_client.filter_results(filtered, target_type='all')
         else:
             filtered = geo_client.filter_results(results, target_type='fine_dining')
 

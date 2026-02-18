@@ -744,7 +744,7 @@
 
         <!-- Pitch Detail Screen -->
         <div id="pitch-screen" class="section pitch-view">
-            <button id="back-btn" class="btn back-btn">← Back to List</button>
+            <button id="back-btn" class="btn back-btn">← Restaurant List</button>
 
             <!-- TTS Controls -->
             <div id="tts-controls" class="tts-controls hidden">
@@ -820,7 +820,10 @@
 
         <!-- Pitch Refinement Screen (Page 3) -->
         <div id="refinement-screen" class="section pitch-view hidden">
-            <button id="back-to-pitch-btn" class="btn back-btn">← Back to Original Pitch</button>
+            <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                <button id="back-to-pitch-btn" class="btn back-btn" style="flex: 1;">← Back to Original Pitch</button>
+                <button id="back-to-list-from-refinement-top" class="btn back-btn" style="flex: 1; background: #666;">← Restaurant List</button>
+            </div>
 
             <!-- Restaurant Info Summary -->
             <div id="refinement-restaurant-info" style="margin-bottom: 20px;">
@@ -941,9 +944,12 @@
                 </div>
 
                 <!-- Try Another Refinement -->
-                <div style="margin-top: 30px; text-align: center;">
-                    <button id="try-another-refinement-btn" class="btn" style="background: #666; color: white;">
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button id="try-another-refinement-btn" class="btn" style="flex: 1; background: #666; color: white;">
                         ← Try Different Persona
+                    </button>
+                    <button id="back-to-list-from-refinement-bottom" class="btn" style="flex: 1; background: #666; color: white;">
+                        ← Restaurant List
                     </button>
                 </div>
             </div>
@@ -1693,7 +1699,7 @@
                 </button>
 
                 <button id="back-to-list-btn" class="btn" style="background: #ddd; color: #333; width: 100%; padding: 10px; margin-top: 8px; font-size: 0.9em;">
-                    ← Back to Restaurant List
+                    ← Restaurant List
                 </button>
             `;
 
@@ -2047,12 +2053,21 @@
         function setupRefinementBackButton() {
             const backBtn = document.getElementById('back-to-pitch-btn');
             const tryAnotherBtn = document.getElementById('try-another-refinement-btn');
+            const backToListTopBtn = document.getElementById('back-to-list-from-refinement-top');
+            const backToListBottomBtn = document.getElementById('back-to-list-from-refinement-bottom');
 
             // Back to original pitch
             const newBackBtn = backBtn.cloneNode(true);
             backBtn.parentNode.replaceChild(newBackBtn, backBtn);
             document.getElementById('back-to-pitch-btn').addEventListener('click', () => {
                 navigateBackToPitch();
+            });
+
+            // Back to restaurant list (top button)
+            const newBackToListTopBtn = backToListTopBtn.cloneNode(true);
+            backToListTopBtn.parentNode.replaceChild(newBackToListTopBtn, backToListTopBtn);
+            document.getElementById('back-to-list-from-refinement-top').addEventListener('click', () => {
+                navigateBackToRestaurantList();
             });
 
             // Try another refinement
@@ -2063,6 +2078,33 @@
                 document.getElementById('refined-pitch-display').classList.add('hidden');
                 stopRefinedTTS();
             });
+
+            // Back to restaurant list (bottom button)
+            const newBackToListBottomBtn = backToListBottomBtn.cloneNode(true);
+            backToListBottomBtn.parentNode.replaceChild(newBackToListBottomBtn, backToListBottomBtn);
+            document.getElementById('back-to-list-from-refinement-bottom').addEventListener('click', () => {
+                navigateBackToRestaurantList();
+            });
+        }
+
+        function navigateBackToRestaurantList() {
+            // Stop any playing TTS
+            stopRefinedTTS();
+            stopTTS();
+
+            // Hide refinement screen
+            document.getElementById('refinement-screen').classList.remove('active');
+            document.getElementById('refinement-screen').classList.add('hidden');
+
+            // Hide pitch screen
+            document.getElementById('pitch-screen').classList.remove('active');
+            document.getElementById('pitch-screen').classList.add('hidden');
+
+            // Show restaurant list
+            restaurantListScreen.classList.remove('hidden');
+
+            // Scroll to top
+            window.scrollTo(0, 0);
         }
 
         function navigateBackToPitch() {

@@ -55,10 +55,18 @@ class GeoapifyClient:
 
         # Casual/Fast Food
         'bagel', 'bagels', 'deli', 'buffalo', 'wings',
-        'sandwich', 'sandwiches', 'hoagie', 'sub',
+        'sandwich', 'sandwiches', 'hoagie', 'sub', 'subs',
         'donut', 'donuts', 'diner',
         'grill', 'inn', 'tavern', 'tap', 'pita',
-        'kitchen', 'eats', 'eatery',
+        'kitchen', 'eats', 'eatery', 'bites', 'slices',
+        'breakfast', 'brunch',  # Breakfast/brunch spots are typically casual
+
+        # Fast Casual Indicators
+        'express',  # Pita Express, Panda Express, Pizza Express
+        'to go', 'takeout', 'grab & go', 'grab and go',
+
+        # Specific Kitchen Patterns (fast casual)
+        'fresh kitchen', 'modern kitchen', 'urban kitchen',
 
         # Fast Food Chains
         "chili's", 'chipotle', 'starbucks', 'dunkin',
