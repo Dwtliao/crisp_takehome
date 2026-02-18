@@ -23,8 +23,29 @@ Hillary sells artisan cheese door-to-door to restaurants. She needs to:
 1. Find compatible restaurants (not fast food!)
 2. Know what's on their menu before walking in
 3. Have a compelling pitch ready
+4. **NEW:** Listen to pitches hands-free while walking
+5. **NEW:** Capture visit notes without typing in winter cold
 
-This system does all three automatically.
+This system does all five automatically.
+
+---
+
+## 🎤 Key Features: Voice Notes & TTS
+
+### Text-to-Speech Pitch Playback
+- Listen to AI-generated pitches via earbuds while walking
+- Memorize key talking points hands-free
+- Play/pause/replay with speed controls (0.75x - 1.5x)
+- **Zero API cost** - Uses browser's built-in speech synthesis
+
+### Voice Notes for Visit Tracking
+- Dictate outcomes after each restaurant visit
+- **Permanently saved** in browser localStorage (survives restarts)
+- Track follow-ups: "Manager away, try next Tuesday"
+- Record successes: "Loved the sample, send invoice Monday"
+- **Hands-free operation** - No typing in winter weather
+
+**Browser requirement:** Chrome or Edge (for voice notes)
 
 ---
 
@@ -106,8 +127,10 @@ Quick summary:
 
 **Proactive features added:**
 - 🗺️ Walking directions (Google Maps integration)
-- ❌ Rejection memory (learns preferences)
+- ❌ Rejection memory (learns preferences, persists in localStorage)
 - ⚠️ Asian cuisine detection (saves $0.05/restaurant)
 - 🔄 Override option (respects Hillary's judgment)
 - 🎯 Pre-set business rules (fine dining, $40/lb cheese compatible)
+- 🔊 Text-to-speech (listen to pitches hands-free via earbuds)
+- 🎤 Voice notes (dictate visit outcomes, saved permanently in localStorage)
 

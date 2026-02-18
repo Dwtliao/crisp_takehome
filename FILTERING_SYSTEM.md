@@ -130,6 +130,53 @@ Found 18 prospects (sorted by distance) • 6 filtered, 3 previously rejected
 
 ---
 
+## 🎤 Voice Notes & Text-to-Speech
+
+**NEW Feature:** Hands-free pitch listening and visit notes
+
+**Location:** `frontend/index.html` (localStorage + Web Speech API)
+
+### Text-to-Speech (TTS)
+**What it does:** Converts sales pitches to audio so Hillary can listen while walking
+
+**Features:**
+- 🔊 **Play/Pause/Stop controls** - Full audio playback control
+- 🔁 **Replay button** - Review pitch multiple times
+- **Speed adjustment** - 0.75x, 1x, 1.25x, 1.5x playback speeds
+- **Hands-free operation** - Listen via earbuds while walking to next restaurant
+- **Zero cost** - Uses browser's built-in Web Speech API (no API charges)
+
+**Browser support:** Chrome, Edge, Safari (limited), Firefox (not supported)
+
+### Voice Notes
+**What it does:** Capture visit outcomes hands-free using speech-to-text
+
+**Features:**
+- 🎤 **Voice recording** - Dictate notes after visiting restaurant
+- 📝 **Live transcription** - See words appear in real-time
+- 💾 **Persistent storage** - Notes saved in localStorage (survives browser/server restarts)
+- 📅 **Timestamped entries** - Each note includes date/time
+- 🔄 **Multiple notes per restaurant** - Track multiple visits/follow-ups
+- 🗂️ **Restaurant-keyed storage** - Notes organized by `name_latitude_longitude`
+
+**Example use cases:**
+- "Manager wasn't available, follow up next Tuesday"
+- "They loved the Smoky Alder sample, send invoice"
+- "Already using a competitor, try again in 3 months"
+- "Kitchen prefers softer cheeses, skip this one"
+
+**Storage details:**
+- Stored in: `localStorage['happy_pastures_voice_notes']`
+- **Persists across:** Browser restarts, server restarts, computer restarts
+- **Does NOT sync:** Each browser/device has separate notes
+- **Clear data:** Browser console → `localStorage.removeItem('happy_pastures_voice_notes')`
+
+**Browser support:** Chrome, Edge (requires microphone permissions)
+
+**Why this matters:** Hillary can record visit outcomes immediately while details are fresh, without stopping to type on her phone in winter cold. Notes persist forever for long-term follow-up tracking.
+
+---
+
 ## 💡 Why This Matters - Business Value
 
 ### Time Saved = Money Earned
