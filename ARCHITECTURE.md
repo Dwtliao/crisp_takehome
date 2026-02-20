@@ -28,7 +28,10 @@ This system helps Hillary sell $30-50/lb artisan cheese by finding high-probabil
 
 **Layer 1: Discovery (Geoapify)** - 2.5km walking radius returns 150 raw prospects. Free tier handles MVP scale.
 
-**Layer 2: Quality Filter (Claude Haiku)** - Batch processes 20 restaurants simultaneously. **Business-focused rules**: excludes Asian cuisine (dairy-incompatible), fast food, and casual chains. Reduces 150 → 20 high-probability prospects who can afford $40/lb cheese. Cost: ~$0.001/restaurant.
+**Layer 2: Quality Filter (Two-Stage)** - Batch processes 20 restaurants simultaneously with two complementary passes:
+- **Stage 1 - Claude Haiku (LLM):** Smart, context-aware filtering. Catches nuanced cases like "Oceanique" (sounds French, actually Asian-fusion). Cost: ~$0.001/restaurant.
+- **Stage 2 - Keyword Filter (safety net):** Post-LLM pass catches obvious fast-casual indicators the LLM might miss — `express`, `to go`, `grab & go`, `breakfast`, `brunch`, `bites`, `slices`, `fresh kitchen`, etc.
+- **Result:** Reduces 150 → ~20 high-probability prospects who can afford $40/lb cheese. Best of both worlds: LLM handles nuance, keywords handle obvious cases reliably.
 
 **Layer 3: Sales Pitch (Claude Sonnet 4.5 + Google Places)** - **On-demand only** (critical cost optimization). When Hillary selects a restaurant, we fetch live menu data from Google Places reviews ($0.032), analyze dishes, match cheese, generate customized pitch (~$0.02). Total: $0.053 per selected prospect. She only pays for restaurants she's actually visiting.
 

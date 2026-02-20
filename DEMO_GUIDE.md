@@ -103,7 +103,8 @@
 - ✅ $20+ entrees (can afford $40/lb cheese)
 - ❌ Asian cuisine (dairy doesn't pair)
 - ❌ Fast food chains (McDonald's, Chipotle)
-- ❌ Fast casual (cafes, bagel shops)
+- ❌ Fast casual (cafes, bagel shops, 'express', 'to go', 'grab & go' spots)
+- ❌ Breakfast/brunch spots (casual, wrong meal type for cheese sales)
 - ❌ Pizza chains (already have cheese suppliers)"
 
 ---
@@ -274,10 +275,12 @@ This means Hillary can visit 20 restaurants Monday, come back Friday, and her no
 - "Notice we're on a new screen - mobile-friendly, no endless scrolling"
 
 **Step 2: Choose a Persona**
-- Show the 3 options:
+- Show the 4 options in a 2x2 grid:
+  - 🚶 Walking & Memorizing (20s)
   - 🧑‍🍳 Chef / Kitchen Staff
   - 👔 Owner / Manager
   - 🎯 Host / Front Desk
+- **Point to the grid layout:** "Notice the compact 2x2 grid - less scrolling on mobile"
 - Click **"🎯 Host / Front Desk"**
 
 **Step 3: Show the Refined Pitch**
@@ -308,7 +311,8 @@ This means Hillary can visit 20 restaurants Monday, come back Friday, and her no
 "Hillary might talk to the host first (gatekeeper), then the chef, then maybe the manager. Each person needs a different pitch."
 
 **The Solution:**
-"Three refinement templates - one click, instant adaptation:
+"Four refinement templates - one click, instant adaptation:
+- **Walking:** Ultra-short 20 seconds, memorize while walking between stops
 - **Gatekeeper:** 30 seconds, get past front desk
 - **Chef:** Technical, culinary peer-to-peer
 - **Manager:** Business ROI, margins, menu differentiation"
