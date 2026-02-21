@@ -79,6 +79,7 @@
 - **localStorage vs database:** Zero infrastructure, instant deployment, rejection memory + pitch saves + location cache all persist locally. Sacrificed: cross-device sync, analytics. Fine for MVP.
 - **On-demand vs pre-generated pitches:** Hillary only pays for restaurants she actually visits. Sacrificed: instant pitch load on first view.
 - **2-page mobile UX vs single page:** Prevented TTS state conflicts, reduced scroll fatigue on mobile. Cost: slightly more navigation.
+- **Rule-based cheese selection vs LLM:** `determine_cheese_match()` scores Pasture Bloom vs Smoky Alder with keyword rules — fast and free, but coarse. The cheese catalog's full pairing data (proteins, produce, beverages, selling points) is now wired into the pitch prompt so Sonnet generates pitches grounded in the actual product catalog, not just inferred from review text.
 
 **What's next (say 2-3 of these):**
 - Route optimization — sort by walking distance from current location, not search center
@@ -94,7 +95,7 @@
 
 **Worth scrutiny:**
 - `backend/api.py` — endpoint design, two-stage filtering pipeline, error handling
-- `backend/sales_pitch_generator.py` — prompt architecture, persona templates, micro-refinement chaining
+- `backend/sales_pitch_generator.py` — prompt architecture, persona templates, micro-refinement chaining; `_build_cheese_context()` specifically wires the full product catalog (selling points, protein/produce/beverage pairings) into every pitch prompt
 - `backend/geoapify_client.py` — keyword filter logic, LLM batch processing
 - `backend/google_places_client.py` — menu data extraction from reviews
 
