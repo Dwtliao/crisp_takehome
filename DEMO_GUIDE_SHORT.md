@@ -15,6 +15,7 @@
 ## PART 1 — Problem Framing (30 sec)
 
 **SAY:**
+> "Hello welcome to David Liao's Happy Pastures app demo to help Hilary sell her specialty cheeses.  You should have a zip file to unpack, run the startup_demo file to setup a virtual env for python, then run start_app for local server of a web page to be ready!"
 > "Hillary sells $40/lb artisan cheese door-to-door to restaurants. The problem was deliberately vague — I interpreted it as three core needs: **find** compatible restaurants, **qualify** them before wasting a visit, and **convert** with a pitch that's actually relevant to their menu. Everything in this system maps to one of those three."
 
 ---
