@@ -2344,6 +2344,9 @@
             const allSavedPitches = JSON.parse(localStorage.getItem(SAVED_PITCHES_KEY) || '{}');
             const key = getSavedPitchKey(currentRestaurantData, persona);
 
+            const cheeseName = originalPitchData ? originalPitchData.cheese.name
+                                                  : (lastLoadedSavedPitch ? lastLoadedSavedPitch.cheese_name : '');
+
             allSavedPitches[key] = {
                 restaurant_name: currentRestaurantData.name,
                 latitude: currentRestaurantData.latitude,
@@ -2352,7 +2355,7 @@
                 persona_label: getPersonaLabel(persona),
                 refined_text: pitchText,
                 saved_at: new Date().toISOString(),
-                cheese_name: originalPitchData.cheese.name
+                cheese_name: cheeseName
             };
 
             localStorage.setItem(SAVED_PITCHES_KEY, JSON.stringify(allSavedPitches));
@@ -2370,6 +2373,9 @@
             setTimeout(() => {
                 savedIndicator.textContent = '✅ Pitch saved! Will load automatically on next visit';
             }, 3000);
+
+            // Refresh the saved pitches section so the new pitch appears immediately
+            checkForSavedPitch();
         }
 
         function loadSavedPitch(restaurant, persona) {
