@@ -831,6 +831,16 @@
                     <p id="saved-pitch-list" style="margin: 8px 0 0 0; color: #666; font-size: 0.9em;"></p>
                 </div>
 
+                <!-- Save Original Pitch -->
+                <div style="margin-bottom: 15px;">
+                    <button id="save-original-pitch-btn" class="btn" style="background: #2c5f2d; color: white; padding: 12px; font-size: 1em; width: 100%;">
+                        💾 Save Original Pitch
+                    </button>
+                    <div id="save-original-indicator" class="hidden" style="color: #2c5f2d; margin-top: 6px; font-weight: 600; text-align: center; font-size: 0.9em;">
+                        ✅ Original pitch saved!
+                    </div>
+                </div>
+
                 <h3>🔄 Want to Refine This Pitch?</h3>
                 <p style="color: #666; margin-bottom: 15px;">
                     Get a version tailored to who you'll be talking to (Chef, Manager, or Front Desk)
@@ -2040,6 +2050,29 @@
             document.getElementById('go-to-refinement-btn').addEventListener('click', () => {
                 navigateToRefinementScreen();
             });
+
+            // Wire up save original pitch button
+            const saveOriginalBtn = document.getElementById('save-original-pitch-btn');
+            const saveOriginalIndicator = document.getElementById('save-original-indicator');
+            const savedKey = getSavedPitchKey(restaurant, 'original');
+            const allSaved = JSON.parse(localStorage.getItem(SAVED_PITCHES_KEY) || '{}');
+            if (allSaved[savedKey]) {
+                saveOriginalBtn.textContent = '✅ Original Pitch Saved';
+                saveOriginalBtn.style.background = '#666';
+                saveOriginalIndicator.classList.remove('hidden');
+            } else {
+                saveOriginalBtn.textContent = '💾 Save Original Pitch';
+                saveOriginalBtn.style.background = '#2c5f2d';
+                saveOriginalIndicator.classList.add('hidden');
+            }
+            const newSaveBtn = saveOriginalBtn.cloneNode(true);
+            saveOriginalBtn.parentNode.replaceChild(newSaveBtn, saveOriginalBtn);
+            document.getElementById('save-original-pitch-btn').addEventListener('click', () => {
+                savePitch('original', buildFullPitchText(pitch));
+                document.getElementById('save-original-pitch-btn').textContent = '✅ Original Pitch Saved';
+                document.getElementById('save-original-pitch-btn').style.background = '#666';
+                document.getElementById('save-original-indicator').classList.remove('hidden');
+            });
         }
 
         function checkAndShowSavedPitchNotice(restaurant) {
@@ -2047,7 +2080,7 @@
             const baseKey = `${restaurant.name.toLowerCase().trim()}_${restaurant.latitude.toFixed(2)}_${restaurant.longitude.toFixed(2)}`;
 
             const savedPersonas = [];
-            ['walking', 'chef', 'manager', 'gatekeeper'].forEach(persona => {
+            ['original', 'walking', 'chef', 'manager', 'gatekeeper'].forEach(persona => {
                 const key = `${baseKey}_${persona}`;
                 if (allSavedPitches[key]) {
                     savedPersonas.push({
@@ -2306,6 +2339,7 @@
 
         function getPersonaLabel(persona) {
             const labels = {
+                'original': '📄 Original Pitch',
                 'walking': '🚶 Walking (20s)',
                 'chef': '🧑‍🍳 Chef/Kitchen Staff',
                 'manager': '👔 Owner/Manager',
@@ -2486,7 +2520,7 @@
             const baseKey = `${currentRestaurantData.name.toLowerCase().trim()}_${currentRestaurantData.latitude.toFixed(2)}_${currentRestaurantData.longitude.toFixed(2)}`;
 
             const savedPitchData = [];
-            ['walking', 'chef', 'manager', 'gatekeeper'].forEach(persona => {
+            ['original', 'walking', 'chef', 'manager', 'gatekeeper'].forEach(persona => {
                 const key = `${baseKey}_${persona}`;
                 if (allSavedPitches[key]) {
                     savedPitchData.push({
