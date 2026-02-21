@@ -39,6 +39,7 @@
 - Click View Pitch — let it load
 - **POINT TO** Menu Pairings: "These are real dishes from their actual menu — not generic suggestions. This is what makes the pitch credible."
 - **POINT TO** Recommended Product: "Specific cheese from the catalog, matched to the cuisine."
+- Click **💾 Save Original Pitch** — **SAY:** "Zero API cost. Hillary saves this before she walks in — no need to refine just to preserve it."
 
 ### Step 4: Voice Features (quick)
 - Click 🔊 Listen — play 5 seconds — **SAY:** "Hands-free. Hillary memorizes this during the walk over."

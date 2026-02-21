@@ -54,20 +54,21 @@ This system does all five automatically.
 **NEW Feature:** Smart caching for frequently visited locations
 
 ### How It Works
-- **First search:** Results cached automatically with timestamp
+- **First search:** Results cached automatically with timestamp (address-based or GPS-based key)
 - **Repeat search:** Instant load from cache (<100ms vs 3 seconds)
 - **7-day TTL:** Cache auto-expires after 7 days for fresh data
-- **Prominent refresh:** "🔄 Refresh" button to manually fetch fresh results
+- **Two manual controls:** "Clear Cache + Refresh" fetches fresh data; "Clear Cache Only" removes entry without re-fetching
 
 ### Visual Indicators
 **Cached Results:**
 ```
-📦 Cached results from 2 days ago    [🔄 Refresh]
+📦 This restaurant list was loaded from cache (2 days ago)
+[Clear Cache + Refresh]  [Clear Cache Only]
 ```
 
 **Fresh Results:**
 ```
-✨ Fresh results just now
+✨ Fresh results  (shown in search info line)
 ```
 
 ### Benefits

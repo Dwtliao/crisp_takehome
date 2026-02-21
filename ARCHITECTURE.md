@@ -176,46 +176,50 @@ This system helps Hillary sell $30-50/lb artisan cheese by finding high-probabil
 
 ### Location Cache Architecture (localStorage)
 
-**NEW Feature:** Smart caching for frequently searched locations
+Smart caching for frequently searched locations — address-based and GPS-based.
 
 **Storage Structure:**
 ```javascript
-localStorage['happy_pastures_location_cache'] = {
-  "loc_42.05_-87.68": {
-    timestamp: "2026-02-18T10:00:00Z",
+localStorage['happy_pastures_restaurant_list_cache_v1'] = {
+  "evanston, il": {
+    address: "Evanston, IL",
     lat: 42.05,
     lon: -87.68,
+    cached_at: "2026-02-21T10:00:00Z",
     data: {
       prospects: [...], // Full restaurant list
       total: 18,
       search_center: {lat, lon},
       search_radius_km: 2.5
     }
+  },
+  "gps:42.05,-87.68": {
+    // GPS searches cached with synthetic key (rounded to 2 decimals)
   }
 }
 ```
 
 **Key Design:**
-- Key format: `loc_{lat}_{lon}` (rounded to 2 decimals)
-- Handles GPS drift (42.048 and 42.052 → same cache key)
+- Address key: normalized string (`address.toLowerCase().trim()`) — consistent across re-searches
+- GPS key: `gps:{lat},{lon}` (rounded to 2 decimals) — handles GPS drift (~100m tolerance)
 - 7-day TTL (auto-expires stale data)
 - Full restaurant data cached (no partial results)
 
 **Cache Flow:**
 ```
-User searches location
+User searches address or uses GPS
   ↓
-Check cache for key
+Check cache for normalized key
   ↓
 If cached & < 7 days old:
-  → Load from localStorage (instant)
-  → Show "📦 Cached results from X days ago"
-  → Display prominent "🔄 Refresh" button
+  → Load from localStorage (instant, <100ms)
+  → Show "📦 Cached results from X ago" banner with two buttons:
+     [Clear Cache + Refresh]  [Clear Cache Only]
   ↓
 If no cache or expired:
   → Fetch from API (Geoapify + Claude)
   → Save to cache with timestamp
-  → Show "✨ Fresh results just now"
+  → Show "✨ Fresh results" in search info line
 ```
 
 **Benefits:**
@@ -226,8 +230,8 @@ If no cache or expired:
 
 **Cache Invalidation:**
 - Automatic: 7 days elapsed
-- Manual: User clicks "🔄 Refresh" button
-- Force refresh bypasses cache, fetches fresh data, updates cache
+- Manual "Clear Cache + Refresh": deletes entry, fetches fresh data, saves new cache
+- Manual "Clear Cache Only": deletes entry, stays on current results (no re-fetch)
 
 **Why 7 Days?**
 - Restaurant landscape changes slowly
