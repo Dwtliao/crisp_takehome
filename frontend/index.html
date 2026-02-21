@@ -672,6 +672,35 @@
             background: #e0e0e0;
         }
 
+        .cache-status {
+            background: #fff8e1;
+            border: 1px solid #f0c36d;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.9em;
+            color: #6a4b00;
+        }
+
+        .cache-status-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-cache {
+            width: auto;
+            margin: 0;
+            padding: 8px 10px;
+            font-size: 0.85em;
+            background: #8a6d3b;
+        }
+
+        .btn-cache.btn-clear-only {
+            background: #666;
+        }
+
         .hidden {
             display: none;
         }
@@ -730,6 +759,7 @@
             <button id="change-location-btn" class="btn back-btn">📍 Change Location</button>
             <h2>Nearby Prospects</h2>
             <p id="search-info" style="color: #666; margin-bottom: 10px;"></p>
+            <div id="cache-status" class="cache-status hidden"></div>
 
 
             <p id="memory-info" style="font-size: 0.85em; color: #888; margin-bottom: 10px;">
@@ -991,6 +1021,10 @@
         // Rejected Restaurants Learning System
         const REJECTED_RESTAURANTS_KEY = 'happy_pastures_rejected_restaurants';
         const MAX_REJECTED_ITEMS = 200; // Store up to 200 rejections
+
+        // Address search restaurant list cache
+        const RESTAURANT_LIST_CACHE_KEY = 'happy_pastures_restaurant_list_cache_v1';
+        const RESTAURANT_LIST_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 
         // Text-to-Speech State
@@ -1259,7 +1293,8 @@
                 async (position) => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
-                    await searchRestaurants(lat, lon);
+                    const gpsCacheKey = `gps:${lat.toFixed(2)},${lon.toFixed(2)}`;
+                    await searchRestaurants(lat, lon, { cacheAddress: gpsCacheKey });
                 },
                 (error) => {
                     gpsBtn.disabled = false;
@@ -1281,6 +1316,73 @@
             } finally {
                 clearTimeout(timeout);
             }
+        }
+
+        function normalizeAddressKey(address) {
+            return address.toLowerCase().trim().replace(/\s+/g, ' ');
+        }
+
+        function getRestaurantListCache() {
+            return JSON.parse(localStorage.getItem(RESTAURANT_LIST_CACHE_KEY) || '{}');
+        }
+
+        function setRestaurantListCache(cache) {
+            localStorage.setItem(RESTAURANT_LIST_CACHE_KEY, JSON.stringify(cache));
+        }
+
+        function getCachedRestaurantList(address) {
+            const cache = getRestaurantListCache();
+            const key = normalizeAddressKey(address);
+            const entry = cache[key];
+
+            if (!entry || !entry.cached_at || !entry.data) {
+                return null;
+            }
+
+            const isExpired = (Date.now() - new Date(entry.cached_at).getTime()) > RESTAURANT_LIST_CACHE_TTL_MS;
+            if (isExpired) {
+                delete cache[key];
+                setRestaurantListCache(cache);
+                return null;
+            }
+
+            return entry;
+        }
+
+        function saveCachedRestaurantList(address, lat, lon, data) {
+            const cache = getRestaurantListCache();
+            const key = normalizeAddressKey(address);
+
+            cache[key] = {
+                address,
+                lat,
+                lon,
+                cached_at: new Date().toISOString(),
+                data
+            };
+
+            setRestaurantListCache(cache);
+        }
+
+        function clearCachedRestaurantList(address) {
+            if (!address) return;
+            const cache = getRestaurantListCache();
+            delete cache[normalizeAddressKey(address)];
+            setRestaurantListCache(cache);
+        }
+
+        function formatCacheAge(cachedAt) {
+            const ageMs = Date.now() - new Date(cachedAt).getTime();
+            const ageMinutes = Math.floor(ageMs / (60 * 1000));
+
+            if (ageMinutes < 1) return 'just now';
+            if (ageMinutes < 60) return `${ageMinutes}m ago`;
+
+            const ageHours = Math.floor(ageMinutes / 60);
+            if (ageHours < 24) return `${ageHours}h ago`;
+
+            const ageDays = Math.floor(ageHours / 24);
+            return `${ageDays}d ago`;
         }
 
         async function searchByAddress(address) {
@@ -1312,11 +1414,10 @@
 
                 const lat = parseFloat(results[0].lat);
                 const lon = parseFloat(results[0].lon);
-
                 saveAddressToHistory(address);
                 displayAddressHistory();
 
-                await searchRestaurants(lat, lon);
+                await searchRestaurants(lat, lon, { cacheAddress: address });
 
             } catch (error) {
                 const msg = error.name === 'AbortError'
@@ -1333,13 +1434,27 @@
         });
 
         // Search restaurants
-        async function searchRestaurants(lat, lon) {
+        async function searchRestaurants(lat, lon, options = {}) {
+            const { cacheAddress = null, forceRefresh = false } = options;
             currentLocation = { lat, lon };
 
             locationScreen.classList.add('hidden');
             loadingScreen.classList.remove('hidden');
 
             try {
+                if (cacheAddress && !forceRefresh) {
+                    const cachedEntry = getCachedRestaurantList(cacheAddress);
+                    if (cachedEntry) {
+                        restaurants = cachedEntry.data.prospects || [];
+                        displayRestaurants(cachedEntry.data, {
+                            fromCache: true,
+                            cachedAt: cachedEntry.cached_at,
+                            cacheAddress
+                        });
+                        return;
+                    }
+                }
+
                 const response = await fetch(
                     `${API_BASE}/api/prospects?lat=${lat}&lon=${lon}&limit=20`
                 );
@@ -1350,8 +1465,11 @@
 
                 const data = await response.json();
                 restaurants = data.prospects;
+                if (cacheAddress) {
+                    saveCachedRestaurantList(cacheAddress, lat, lon, data);
+                }
 
-                displayRestaurants(data);
+                displayRestaurants(data, { fromCache: false, freshForAddress: !!cacheAddress });
             } catch (error) {
                 loadingScreen.classList.add('hidden');
                 locationScreen.classList.remove('hidden');
@@ -1364,7 +1482,7 @@
         }
 
         // Display restaurant list
-        function displayRestaurants(data) {
+        function displayRestaurants(data, meta = {}) {
             loadingScreen.classList.add('hidden');
             restaurantListScreen.classList.remove('hidden');
 
@@ -1395,7 +1513,13 @@
             if (filters.length > 0) {
                 infoText += ` • ${filters.join(', ')}`;
             }
+            if (meta.fromCache) {
+                infoText += ` • 📦 Cached ${formatCacheAge(meta.cachedAt)}`;
+            } else if (meta.freshForAddress) {
+                infoText += ' • ✨ Fresh results';
+            }
             document.getElementById('search-info').textContent = infoText;
+            updateCacheStatusBar(meta);
 
 
             // Update memory stats
@@ -1461,6 +1585,43 @@
                 rejectBtn.addEventListener('click', () => rejectRestaurant(restaurant, item));
 
                 list.appendChild(item);
+            });
+        }
+
+        function updateCacheStatusBar(meta = {}) {
+            const cacheStatus = document.getElementById('cache-status');
+
+            if (!meta.fromCache || !meta.cacheAddress) {
+                cacheStatus.classList.add('hidden');
+                cacheStatus.innerHTML = '';
+                return;
+            }
+
+            const cachedAt = new Date(meta.cachedAt);
+            const timestamp = cachedAt.toLocaleString();
+
+            cacheStatus.innerHTML = `
+                <div>📦 This restaurant list was loaded from cache (${formatCacheAge(meta.cachedAt)}).</div>
+                <div style="font-size: 0.8em; color: #86600f; margin-top: 3px;">Saved: ${timestamp}</div>
+                <div class="cache-status-actions">
+                    <button id="clear-cache-refresh-btn" class="btn btn-cache">Clear Cache + Refresh</button>
+                    <button id="clear-cache-only-btn" class="btn btn-cache btn-clear-only">Clear Cache Only</button>
+                </div>
+            `;
+            cacheStatus.classList.remove('hidden');
+
+            document.getElementById('clear-cache-refresh-btn').addEventListener('click', async () => {
+                clearCachedRestaurantList(meta.cacheAddress);
+                cacheStatus.classList.add('hidden');
+                await searchRestaurants(currentLocation.lat, currentLocation.lon, {
+                    cacheAddress: meta.cacheAddress,
+                    forceRefresh: true
+                });
+            });
+
+            document.getElementById('clear-cache-only-btn').addEventListener('click', () => {
+                clearCachedRestaurantList(meta.cacheAddress);
+                cacheStatus.innerHTML = '<div>🧹 Cache cleared for this address.</div>';
             });
         }
 
@@ -2973,7 +3134,12 @@
                     <div class="note-item">
                         <div class="note-header">
                             <span>🎤 ${formattedDate}</span>
-                            <button class="note-delete" onclick="deleteNote('${note.id}', '${restaurant.name}', ${restaurant.latitude}, ${restaurant.longitude})">
+                            <button class="note-delete"
+                                data-note-id="${note.id}"
+                                data-restaurant-name="${restaurant.name.replace(/"/g, '&quot;')}"
+                                data-lat="${restaurant.latitude}"
+                                data-lon="${restaurant.longitude}"
+                                onclick="deleteNote(this.dataset.noteId, this.dataset.restaurantName, parseFloat(this.dataset.lat), parseFloat(this.dataset.lon))">
                                 Delete
                             </button>
                         </div>

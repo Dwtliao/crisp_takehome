@@ -54,7 +54,7 @@ class GeoapifyClient:
         'tipico', 'taquito',
 
         # Casual/Fast Food
-        'bagel', 'bagels', 'deli', 'buffalo', 'wings',
+        'bagel', 'bagels', 'deli', 'buffalo', 'wing', 'wings',
         'sandwich', 'sandwiches', 'hoagie', 'sub', 'subs',
         'donut', 'donuts', 'diner',
         'grill', 'inn', 'tavern', 'tap', 'pita',
