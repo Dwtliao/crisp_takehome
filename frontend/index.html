@@ -1929,6 +1929,7 @@
         let originalPitchData = null;
         let originalPitchHTML = null;
         let currentRestaurantData = null;
+        let lastLoadedSavedPitch = null;
 
         function initializePitchRefinement(pitch, restaurant) {
             // Store original pitch data for refinement screen
@@ -2135,8 +2136,19 @@
             refinedDisplay.classList.add('hidden');
 
             try {
-                // Build the full pitch text to send for refinement
-                const fullPitchText = buildFullPitchText(originalPitchData);
+                // Build the full pitch text to send for refinement.
+                // Fall back to the last loaded saved pitch if the original was never generated
+                // in this session (e.g. user arrived via the saved pitch choice screen).
+                let fullPitchText, cheeseName;
+                if (originalPitchData) {
+                    fullPitchText = buildFullPitchText(originalPitchData);
+                    cheeseName = originalPitchData.cheese.name;
+                } else if (lastLoadedSavedPitch) {
+                    fullPitchText = lastLoadedSavedPitch.refined_text;
+                    cheeseName = lastLoadedSavedPitch.cheese_name;
+                } else {
+                    throw new Error('No pitch data available — please generate a pitch first');
+                }
 
                 // Call backend API
                 const response = await fetch(`${API_BASE}/api/pitch/refine`, {
@@ -2147,7 +2159,7 @@
                     body: JSON.stringify({
                         original_pitch: fullPitchText,
                         restaurant_name: currentRestaurantData.name,
-                        cheese_name: originalPitchData.cheese.name,
+                        cheese_name: cheeseName,
                         persona: persona
                     })
                 });
@@ -2442,6 +2454,7 @@
             const refinedLabel = document.getElementById('refined-pitch-label');
             const refinedContent = document.getElementById('refined-pitch-content');
 
+            lastLoadedSavedPitch = savedPitch;
             refinedLabel.textContent = `📝 Saved Pitch: ${getPersonaLabel(persona)}`;
             refinedContent.innerHTML = savedPitch.refined_text;
             refinedDisplay.classList.remove('hidden');
