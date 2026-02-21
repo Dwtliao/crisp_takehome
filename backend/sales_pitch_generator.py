@@ -312,6 +312,12 @@ Format as JSON:
         context = f"{cheese['name']} ({cheese['subtitle']})\n\n"
         context += f"Description: {cheese['full_description']}\n\n"
         context += f"Ideal Uses: {', '.join(cheese['ideal_uses'][:5])}\n"
+        context += f"Key Selling Points: {', '.join(cheese['selling_points'])}\n"
+        pairings = cheese['pairings']
+        beverages = pairings.get('beverages', pairings.get('wines', []))
+        context += f"Pairs well with - Proteins: {', '.join(pairings['proteins'])}; "
+        context += f"Produce: {', '.join(pairings['produce'])}; "
+        context += f"Beverages: {', '.join(beverages)}\n"
         context += f"Price: {cheese['typical_price_lb']} per lb\n"
         return context
 
