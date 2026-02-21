@@ -731,8 +731,6 @@
             <h2>Nearby Prospects</h2>
             <p id="search-info" style="color: #666; margin-bottom: 10px;"></p>
 
-            <!-- Cache Indicator & Refresh Button -->
-            <div id="cache-indicator"></div>
 
             <p id="memory-info" style="font-size: 0.85em; color: #888; margin-bottom: 10px;">
                 <span id="memory-stats"></span>
@@ -966,8 +964,11 @@
         let currentLocation = null;
         let restaurants = [];
 
-        // API endpoint (use relative path since we're mounted on same server)
-        const API_BASE = 'http://localhost:8000';
+        // API endpoint:
+        // Use current origin when served by FastAPI (/app), with localhost fallback for file:// usage.
+        const API_BASE = window.location.origin.startsWith('http')
+            ? window.location.origin
+            : 'http://localhost:8000';
 
         // Restaurant name blacklist - filter these out
         const RESTAURANT_BLACKLIST = [
@@ -991,10 +992,6 @@
         const REJECTED_RESTAURANTS_KEY = 'happy_pastures_rejected_restaurants';
         const MAX_REJECTED_ITEMS = 200; // Store up to 200 rejections
 
-        // Location Cache System
-        const LOCATION_CACHE_KEY = 'happy_pastures_location_cache';
-        const CACHE_TTL_DAYS = 7; // Cache expires after 7 days
-        let currentCacheInfo = null; // Track if current results are cached
 
         // Text-to-Speech State
         let ttsUtterance = null;
@@ -1047,7 +1044,7 @@
 
         function useHistoryAddress(address) {
             document.getElementById('address-input').value = address;
-            document.getElementById('address-btn').click();
+            searchByAddress(address);
         }
 
         function shouldFilterRestaurant(restaurantName) {
@@ -1273,8 +1270,20 @@
         });
 
         // Address Search (using free Nominatim geocoding)
-        addressBtn.addEventListener('click', async () => {
-            const address = addressInput.value.trim();
+        async function geocodeAddress(address) {
+            const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 8000);
+            try {
+                const response = await fetch(geocodeUrl, { signal: controller.signal });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } finally {
+                clearTimeout(timeout);
+            }
+        }
+
+        async function searchByAddress(address) {
             if (!address) {
                 showError('Please enter an address');
                 return;
@@ -1285,16 +1294,14 @@
             addressBtn.textContent = '🔍 Finding location...';
 
             try {
-                // Use Nominatim (OpenStreetMap) free geocoding
-                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
-
-                const response = await fetch(geocodeUrl, {
-                    headers: {
-                        'User-Agent': 'HappyPasturesCreamery/1.0'
-                    }
-                });
-
-                const results = await response.json();
+                let results;
+                try {
+                    results = await geocodeAddress(address);
+                } catch (e) {
+                    // Silent retry after 1s (Nominatim rate limit)
+                    await new Promise(r => setTimeout(r, 1000));
+                    results = await geocodeAddress(address);
+                }
 
                 if (results.length === 0) {
                     showError('Address not found. Please try a different address or use GPS.');
@@ -1306,101 +1313,33 @@
                 const lat = parseFloat(results[0].lat);
                 const lon = parseFloat(results[0].lon);
 
-                // Save to history after successful geocoding
                 saveAddressToHistory(address);
+                displayAddressHistory();
 
                 await searchRestaurants(lat, lon);
 
             } catch (error) {
-                showError('Error finding address. Please try again or use GPS.');
+                const msg = error.name === 'AbortError'
+                    ? 'Geocoding timed out. Please try again.'
+                    : 'Address not found. Please try a different address or use GPS.';
+                showError(msg);
                 addressBtn.disabled = false;
                 addressBtn.textContent = 'Search This Address';
             }
+        }
+
+        addressBtn.addEventListener('click', () => {
+            searchByAddress(addressInput.value.trim());
         });
 
-        // ===== LOCATION CACHE FUNCTIONS =====
-
-        function getCacheKey(lat, lon) {
-            // Create unique key for location (rounded to 2 decimals to handle minor GPS drift)
-            return `loc_${lat.toFixed(2)}_${lon.toFixed(2)}`;
-        }
-
-        function getCachedResults(lat, lon) {
-            const cache = JSON.parse(localStorage.getItem(LOCATION_CACHE_KEY) || '{}');
-            const key = getCacheKey(lat, lon);
-            const cached = cache[key];
-
-            if (!cached) return null;
-
-            // Check if cache is expired (> 7 days)
-            const cacheDate = new Date(cached.timestamp);
-            const now = new Date();
-            const daysSinceCached = (now - cacheDate) / (1000 * 60 * 60 * 24);
-
-            if (daysSinceCached > CACHE_TTL_DAYS) {
-                // Cache expired, remove it
-                delete cache[key];
-                localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(cache));
-                return null;
-            }
-
-            return cached;
-        }
-
-        function saveCacheResults(lat, lon, data) {
-            const cache = JSON.parse(localStorage.getItem(LOCATION_CACHE_KEY) || '{}');
-            const key = getCacheKey(lat, lon);
-
-            cache[key] = {
-                timestamp: new Date().toISOString(),
-                lat: lat,
-                lon: lon,
-                data: data
-            };
-
-            localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(cache));
-        }
-
-        function getCacheAge(timestamp) {
-            const cacheDate = new Date(timestamp);
-            const now = new Date();
-            const hoursSince = (now - cacheDate) / (1000 * 60 * 60);
-            const daysSince = Math.floor(hoursSince / 24);
-
-            if (daysSince === 0) {
-                const hours = Math.floor(hoursSince);
-                if (hours === 0) return 'just now';
-                return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-            }
-            return `${daysSince} day${daysSince === 1 ? '' : 's'} ago`;
-        }
-
-        // Search restaurants (with caching)
-        async function searchRestaurants(lat, lon, forceRefresh = false) {
+        // Search restaurants
+        async function searchRestaurants(lat, lon) {
             currentLocation = { lat, lon };
 
             locationScreen.classList.add('hidden');
             loadingScreen.classList.remove('hidden');
 
             try {
-                // Check cache first (unless force refresh)
-                if (!forceRefresh) {
-                    const cached = getCachedResults(lat, lon);
-                    if (cached) {
-                        console.log('📦 Loading from cache...');
-                        restaurants = cached.data.prospects;
-                        currentCacheInfo = {
-                            cached: true,
-                            timestamp: cached.timestamp,
-                            age: getCacheAge(cached.timestamp)
-                        };
-                        displayRestaurants(cached.data);
-                        return;
-                    }
-                }
-
-                // No cache or force refresh - fetch from API
-                console.log('🔄 Fetching fresh results from API...');
                 const response = await fetch(
                     `${API_BASE}/api/prospects?lat=${lat}&lon=${lon}&limit=20`
                 );
@@ -1412,15 +1351,6 @@
                 const data = await response.json();
                 restaurants = data.prospects;
 
-                // Save to cache
-                saveCacheResults(lat, lon, data);
-
-                currentCacheInfo = {
-                    cached: false,
-                    timestamp: new Date().toISOString(),
-                    age: 'just now'
-                };
-
                 displayRestaurants(data);
             } catch (error) {
                 loadingScreen.classList.add('hidden');
@@ -1428,6 +1358,8 @@
                 showError('Error finding restaurants. Please try again.');
                 gpsBtn.disabled = false;
                 gpsBtn.textContent = '📍 Use My Current Location';
+                addressBtn.disabled = false;
+                addressBtn.textContent = 'Search This Address';
             }
         }
 
@@ -1465,36 +1397,6 @@
             }
             document.getElementById('search-info').textContent = infoText;
 
-            // Add cache indicator and refresh button
-            const cacheIndicator = document.getElementById('cache-indicator');
-            if (currentCacheInfo && currentCacheInfo.cached) {
-                cacheIndicator.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; background: #e3f2fd; padding: 10px 15px; border-radius: 6px; margin: 10px 0; border-left: 3px solid #2196F3;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 1.2em;">📦</span>
-                            <span style="color: #1976D2; font-size: 0.9em;">
-                                <strong>Cached results</strong> from ${currentCacheInfo.age}
-                            </span>
-                        </div>
-                        <button id="refresh-list-btn" class="btn btn-small" style="background: #2196F3; color: white; padding: 8px 15px; font-size: 0.85em;">
-                            🔄 Refresh
-                        </button>
-                    </div>
-                `;
-                // Add refresh button handler
-                document.getElementById('refresh-list-btn').addEventListener('click', () => {
-                    if (currentLocation) {
-                        searchRestaurants(currentLocation.lat, currentLocation.lon, true);
-                    }
-                });
-            } else {
-                cacheIndicator.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 8px; background: #e8f5e9; padding: 8px 15px; border-radius: 6px; margin: 10px 0; border-left: 3px solid #4CAF50;">
-                        <span style="font-size: 1.1em;">✨</span>
-                        <span style="color: #2E7D32; font-size: 0.85em;">Fresh results ${currentCacheInfo ? currentCacheInfo.age : ''}</span>
-                    </div>
-                `;
-            }
 
             // Update memory stats
             const totalRejected = getRejectedCount();
@@ -1681,12 +1583,17 @@
                 const dateStr = savedDate.toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
 
                 html += `
-                    <button class="btn load-saved-choice-btn" data-persona="${saved.persona}"
-                            style="background: white; color: #2c5f2d; border: 2px solid #2c5f2d; padding: 10px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; min-height: 70px;">
-                        <span style="font-size: 1.3em;">📖</span>
-                        <div style="font-weight: bold; font-size: 0.95em;">${saved.label}</div>
-                        <small style="color: #666; font-size: 0.8em;">${dateStr}</small>
-                    </button>
+                    <div style="position: relative; border: 2px solid #2c5f2d; border-radius: 6px; overflow: hidden; background: white; min-height: 70px;">
+                        <button class="load-saved-choice-btn" data-persona="${saved.persona}"
+                                style="width: 100%; height: 100%; background: none; border: none; padding: 10px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; cursor: pointer; color: #2c5f2d;">
+                            <span style="font-size: 1.3em;">📖</span>
+                            <div style="font-weight: bold; font-size: 0.95em;">${saved.label}</div>
+                            <small style="color: #666; font-size: 0.8em;">${dateStr}</small>
+                        </button>
+                        <button class="delete-saved-choice-btn" data-persona="${saved.persona}"
+                                style="position: absolute; top: 4px; right: 4px; background: none; border: none; color: #aaa; font-size: 1em; cursor: pointer; line-height: 1; padding: 2px 4px;"
+                                title="Delete this saved pitch">✕</button>
+                    </div>
                 `;
             });
 
@@ -1712,11 +1619,30 @@
             document.querySelectorAll('.load-saved-choice-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const persona = btn.dataset.persona;
-                    // Go directly to refinement screen with saved pitch loaded
                     navigateToRefinementScreen();
                     setTimeout(() => {
                         loadAndDisplaySavedPitch(persona);
                     }, 100);
+                });
+            });
+
+            document.querySelectorAll('.delete-saved-choice-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const persona = btn.dataset.persona;
+                    deleteSavedPitch(restaurant, persona);
+                    // Re-check remaining saved pitches — if none left, go straight to fresh pitch
+                    const remaining = ['walking', 'chef', 'manager', 'gatekeeper']
+                        .filter(p => loadSavedPitch(restaurant, p));
+                    if (remaining.length === 0) {
+                        generateNewPitch(restaurant);
+                    } else {
+                        showSavedPitchChoice(restaurant, remaining.map(p => ({
+                            persona: p,
+                            label: getPersonaLabel(p),
+                            data: loadSavedPitch(restaurant, p)
+                        })));
+                    }
                 });
             });
 
@@ -2384,6 +2310,13 @@
             return allSavedPitches[key] || null;
         }
 
+        function deleteSavedPitch(restaurant, persona) {
+            const allSavedPitches = JSON.parse(localStorage.getItem(SAVED_PITCHES_KEY) || '{}');
+            const key = getSavedPitchKey(restaurant, persona);
+            delete allSavedPitches[key];
+            localStorage.setItem(SAVED_PITCHES_KEY, JSON.stringify(allSavedPitches));
+        }
+
         // Check for saved pitch on navigation to refinement screen
         function checkForSavedPitch() {
             // This will be called when navigating to refinement screen
@@ -2423,25 +2356,37 @@
                     const dateStr = savedDate.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) + ' ' + savedDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
                     html += `
-                        <button class="btn load-saved-pitch-btn" data-persona="${saved.persona}"
-                                style="background: white; color: #2c5f2d; border: 1px solid #2c5f2d; padding: 8px 12px; margin-bottom: 6px; width: 100%; text-align: left; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong>${saved.label}</strong>
-                                <span style="color: #666; font-size: 0.85em; margin-left: 8px;">${dateStr}</span>
-                            </div>
-                            <span>📖</span>
-                        </button>
+                        <div style="display: flex; margin-bottom: 6px; border: 1px solid #2c5f2d; border-radius: 4px; overflow: hidden;">
+                            <button class="load-saved-pitch-btn" data-persona="${saved.persona}"
+                                    style="flex: 1; background: white; color: #2c5f2d; border: none; padding: 8px 12px; text-align: left; font-size: 0.9em; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${saved.label}</strong>
+                                    <span style="color: #666; font-size: 0.85em; margin-left: 8px;">${dateStr}</span>
+                                </div>
+                                <span>📖</span>
+                            </button>
+                            <button class="delete-saved-pitch-btn" data-persona="${saved.persona}"
+                                    style="background: #fee2e2; color: #dc2626; border: none; border-left: 1px solid #2c5f2d; padding: 0 12px; cursor: pointer; font-size: 1em;"
+                                    title="Delete this saved pitch">🗑️</button>
+                        </div>
                     `;
                 });
 
                 notice.innerHTML = html;
                 selector.insertBefore(notice, selector.firstChild);
 
-                // Add click handlers to load buttons
+                // Add click handlers to load and delete buttons
                 document.querySelectorAll('.load-saved-pitch-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const persona = btn.dataset.persona;
                         loadAndDisplaySavedPitch(persona);
+                    });
+                });
+
+                document.querySelectorAll('.delete-saved-pitch-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        deleteSavedPitch(currentRestaurantData, btn.dataset.persona);
+                        checkForSavedPitch(); // re-render the section
                     });
                 });
             }
@@ -2603,14 +2548,16 @@
             setTimeout(() => playTTS(), 100);
         }
 
-        function setTTSSpeed(speed) {
+        function setTTSSpeed(speed, targetButton) {
             ttsSpeed = parseFloat(speed);
 
             // Update active button
-            document.querySelectorAll('.speed-btn').forEach(btn => {
+            document.querySelectorAll('#tts-controls .speed-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            if (targetButton) {
+                targetButton.classList.add('active');
+            }
 
             // If currently playing, restart with new speed
             if (ttsIsPlaying) {
@@ -2667,10 +2614,10 @@
         document.getElementById('tts-replay-btn').addEventListener('click', replayTTS);
 
         // Speed buttons
-        document.querySelectorAll('.speed-btn').forEach(btn => {
+        document.querySelectorAll('#tts-controls .speed-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const speed = e.target.getAttribute('data-speed');
-                setTTSSpeed(speed);
+                const speed = e.currentTarget.getAttribute('data-speed');
+                setTTSSpeed(speed, e.currentTarget);
             });
         });
 
@@ -2848,7 +2795,7 @@
             stopRefinedTTS();
 
             // Hide refined pitch
-            document.getElementById('refined-pitch-container').classList.add('hidden');
+            document.getElementById('refined-pitch-display').classList.add('hidden');
 
             // Scroll back to top of pitch
             document.getElementById('pitch-content').scrollIntoView({ behavior: 'smooth' });
