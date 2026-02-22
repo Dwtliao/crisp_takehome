@@ -41,11 +41,35 @@
         let ttsSpeed = 1.0;
         let ttsIsPlaying = false;
 
+        // Active search scope for location-specific rejection memory
+        let currentSearchScope = 'global';
+        let currentSearchScopeLabel = 'this area';
+
         // Voice Notes State
         const VOICE_NOTES_KEY = 'happy_pastures_voice_notes';
         let currentRestaurantForNotes = null;
         let voiceRecognition = null;
         let isRecording = false;
+
+        function setCurrentSearchScope(cacheAddress) {
+            if (!cacheAddress) {
+                currentSearchScope = 'global';
+                currentSearchScopeLabel = 'this area';
+                return;
+            }
+
+            currentSearchScope = normalizeAddressKey(cacheAddress);
+            currentSearchScopeLabel = cacheAddress.startsWith('gps:')
+                ? 'this GPS area'
+                : `"${cacheAddress}"`;
+        }
+
+        function getScopedRestaurantKey(restaurant, scope = currentSearchScope) {
+            const lat = parseFloat(restaurant.latitude);
+            const lon = parseFloat(restaurant.longitude);
+            const restaurantKey = `${restaurant.name.toLowerCase().trim()}_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+            return `${scope}::${restaurantKey}`;
+        }
 
         function saveAddressToHistory(address) {
             let history = JSON.parse(localStorage.getItem(ADDRESS_HISTORY_KEY) || '[]');
@@ -111,13 +135,15 @@
             // Create unique key from name + approximate location (2 decimal places for better matching)
             const lat = parseFloat(restaurant.latitude);
             const lon = parseFloat(restaurant.longitude);
-            const key = `${restaurant.name.toLowerCase().trim()}_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+            const key = getScopedRestaurantKey(restaurant);
 
             rejected[key] = {
                 name: restaurant.name,
                 address: restaurant.address,
                 latitude: lat,
                 longitude: lon,
+                search_scope: currentSearchScope,
+                search_scope_label: currentSearchScopeLabel,
                 rejectedAt: new Date().toISOString(),
                 reason: 'manual_rejection'
             };
@@ -125,6 +151,7 @@
             console.log('=== SAVING REJECTION ===');
             console.log('Restaurant:', restaurant.name);
             console.log('Key:', key);
+            console.log('Scope:', currentSearchScope);
             console.log('Coords:', lat, lon);
             console.log('Full data:', rejected[key]);
             console.log('=== SAVED ===\n');
@@ -157,7 +184,7 @@
                 return false;
             }
 
-            const key = `${restaurant.name.toLowerCase().trim()}_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+            const key = getScopedRestaurantKey(restaurant);
             const isRejected = rejected.hasOwnProperty(key);
 
             // Always log for debugging
@@ -173,32 +200,39 @@
 
         function getRejectedCount() {
             const rejected = JSON.parse(localStorage.getItem(REJECTED_RESTAURANTS_KEY) || '{}');
-            return Object.keys(rejected).length;
+            return Object.values(rejected).filter(r => (r.search_scope || 'global') === currentSearchScope).length;
         }
 
         function clearRejectedRestaurants() {
-            if (confirm('Clear all rejected restaurants from memory?')) {
-                localStorage.removeItem(REJECTED_RESTAURANTS_KEY);
-                alert('Rejection history cleared!');
+            if (confirm(`Clear rejected restaurants for ${currentSearchScopeLabel}?`)) {
+                const rejected = JSON.parse(localStorage.getItem(REJECTED_RESTAURANTS_KEY) || '{}');
+                const filtered = Object.fromEntries(
+                    Object.entries(rejected).filter(([_, r]) => (r.search_scope || 'global') !== currentSearchScope)
+                );
+                localStorage.setItem(REJECTED_RESTAURANTS_KEY, JSON.stringify(filtered));
+                alert(`Rejection history cleared for ${currentSearchScopeLabel}.`);
                 location.reload();
             }
         }
 
         function viewRejectedRestaurants() {
             const rejected = JSON.parse(localStorage.getItem(REJECTED_RESTAURANTS_KEY) || '{}');
-            const count = Object.keys(rejected).length;
+            const scopedRejectedEntries = Object.entries(rejected)
+                .filter(([_, r]) => (r.search_scope || 'global') === currentSearchScope);
+            const count = scopedRejectedEntries.length;
 
             if (count === 0) {
-                alert('No restaurants in rejection memory.');
+                alert(`No restaurants in rejection memory for ${currentSearchScopeLabel}.`);
                 return;
             }
 
-            console.log('=== REJECTED RESTAURANTS IN MEMORY ===');
-            let list = `${count} rejected restaurants:\n\n`;
-            Object.entries(rejected).forEach(([key, r], i) => {
+            console.log(`=== REJECTED RESTAURANTS IN MEMORY (${currentSearchScope}) ===`);
+            let list = `${count} rejected restaurants for ${currentSearchScopeLabel}:\n\n`;
+            scopedRejectedEntries.forEach(([key, r], i) => {
                 list += `${i+1}. ${r.name}\n   ${r.address}\n   Rejected: ${new Date(r.rejectedAt).toLocaleDateString()}\n\n`;
                 console.log(`${i+1}. ${r.name}`);
                 console.log(`   Key: ${key}`);
+                console.log(`   Scope: ${r.search_scope}`);
                 console.log(`   Lat/Lon: ${r.latitude}, ${r.longitude}`);
                 console.log(`   Address: ${r.address}`);
                 console.log('');
@@ -229,10 +263,9 @@
                     itemElement.remove();
 
                     // Update counts
-                    const remaining = document.querySelectorAll('.restaurant-item').length;
                     const totalRejected = getRejectedCount();
                     const memoryStats = document.getElementById('memory-stats');
-                    memoryStats.textContent = `🧠 ${totalRejected} restaurants in rejection memory`;
+                    memoryStats.textContent = `🧠 ${totalRejected} restaurants in rejection memory for this area`;
                 }, 300);
             }, 1200);
         }
@@ -268,7 +301,7 @@
             const totalRejected = getRejectedCount();
             const memoryStats = document.getElementById('memory-stats');
             if (memoryStats) {
-                memoryStats.textContent = `🧠 ${totalRejected} restaurants in rejection memory`;
+                memoryStats.textContent = `🧠 ${totalRejected} restaurants in rejection memory for this area`;
             }
         }
 
@@ -445,6 +478,7 @@
         async function searchRestaurants(lat, lon, options = {}) {
             const { cacheAddress = null, forceRefresh = false } = options;
             currentLocation = { lat, lon };
+            setCurrentSearchScope(cacheAddress || `gps:${lat.toFixed(2)},${lon.toFixed(2)}`);
 
             locationScreen.classList.add('hidden');
             loadingScreen.classList.remove('hidden');
@@ -534,7 +568,7 @@
             const totalRejected = getRejectedCount();
             const memoryStats = document.getElementById('memory-stats');
             if (totalRejected > 0) {
-                memoryStats.textContent = `🧠 ${totalRejected} restaurants in rejection memory`;
+                memoryStats.textContent = `🧠 ${totalRejected} restaurants in rejection memory for this area`;
                 memoryStats.style.color = '#4CAF50';
                 memoryStats.style.fontWeight = 'bold';
             } else {
