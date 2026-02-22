@@ -18,7 +18,6 @@ This creates: `happy_pastures_demo.zip`
 ### ✅ Included:
 - All backend code (`backend/`)
 - All frontend code (`frontend/`)
-- Test scripts (`tests/`)
 - **Your .env file with API keys** 🔑
 - requirements.txt
 - start_app.sh
@@ -31,6 +30,7 @@ This creates: `happy_pastures_demo.zip`
 - .pyc files
 - .DS_Store files
 - Virtual environments
+- Test scripts (`tests/`)
 
 ---
 
@@ -79,7 +79,6 @@ happy_pastures_demo/
 │   ├── index.html
 │   ├── style.css
 │   └── app.js
-├── tests/                        # Test scripts
 ├── .env                          # ⚠️ API KEYS (keep secure!)
 ├── requirements.txt              # Python dependencies
 ├── start_app.sh                  # App launcher
