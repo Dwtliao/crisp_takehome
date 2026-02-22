@@ -1786,6 +1786,9 @@
             // Set current restaurant for later use
             currentRestaurantData = restaurant;
 
+            // Initialize voice notes for this restaurant (same as displayPitch)
+            initializeVoiceNotes(restaurant);
+
             // Add event listeners
             document.querySelectorAll('.load-saved-choice-btn').forEach(btn => {
                 btn.addEventListener('click', () => {

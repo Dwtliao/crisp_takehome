@@ -455,7 +455,9 @@ Avoid: Long explanations, sales pressure, anything that takes more than 30 secon
         if persona not in templates:
             raise ValueError(f"Unknown persona: {persona}. Must be 'walking', 'chef', 'manager', or 'gatekeeper'")
 
-        prompt = templates[persona]
+        # Prepend salesperson identity so the LLM never uses [Name] placeholders
+        identity = "IMPORTANT: The salesperson's name is Hillary. The company is Happy Pastures Creamery. Never use [Name] or [Company] placeholders — always use these exact names.\n\n"
+        prompt = identity + templates[persona]
 
         # Call Claude API
         url = "https://api.anthropic.com/v1/messages"
