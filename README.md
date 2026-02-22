@@ -175,7 +175,9 @@ backend/
   cheese_products.py       # Product catalog
 
 frontend/
-  index.html              # Mobile-first web app
+  index.html              # HTML structure only
+  style.css               # All CSS styles
+  app.js                  # All JavaScript
 
 tests/
   test_*.py              # Test scripts
@@ -217,7 +219,7 @@ Quick summary:
 - ❌ **Foursquare Places** - Authentication failures, confusing docs (3 hours wasted)
 
 **Key tradeoffs:**
-- **Speed over polish** - Shipped in time constraints, vanilla JS not React
+- **Speed over polish** - Shipped in time constraints, vanilla JS/CSS not React (split into index.html + style.css + app.js for maintainability)
 - **Cost over "free"** - Google Places costs money but works reliably
 - **localStorage over database** - No infrastructure, 200-item rejection memory
 - **Business focus** - Every filter optimizes for high-probability customers ($20+ entrees, cheese-friendly cuisines)
@@ -230,7 +232,7 @@ Quick summary:
 - 🎯 Pre-set business rules (fine dining, $40/lb cheese compatible)
 - 🔊 Text-to-speech (listen to pitches hands-free via earbuds)
 - 🎤 Voice notes (dictate visit outcomes, saved permanently in localStorage)
-- 🔄 Pitch refinement (4 personas: Walking, Chef, Manager, Host with separate TTS)
+- 🔄 Pitch refinement (5 personas: Original, Walking, Chef, Manager, Host with separate TTS)
 - ✨ Micro-refinements (5 polish options: Shorten, Expand, Casual, Formal, Strong Opener)
 - 💾 Save & reuse pitches (zero cost on return visits, loads from localStorage)
 - 📦 Location caching (instant repeat searches, 7-day auto-expire, prominent refresh button)

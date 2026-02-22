@@ -20,7 +20,7 @@ This system helps Hillary sell $30-50/lb artisan cheese by finding high-probabil
 
 ### Frontend: Vanilla HTML/JS - Intentional Simplicity
 
-**No React, no Vue, no build step.** This wasn't laziness - it was pragmatism under time constraints. 500 lines of readable JavaScript that works on any browser, deploys instantly, and reviewers can run without `npm install`. Mobile-first GPS integration (Hillary's walking door-to-door) with address fallback. The UI is simple but **proactive**: walking directions button, rejection memory, override options for edge cases. We built what Hillary needs, not what looks impressive in a portfolio.
+**No React, no Vue, no build step.** This wasn't laziness - it was pragmatism under time constraints. Split into three files (`index.html` / `style.css` / `app.js`) that work on any browser, deploy instantly, and reviewers can run without `npm install`. Mobile-first GPS integration (Hillary's walking door-to-door) with address fallback. The UI is simple but **proactive**: walking directions button, rejection memory, override options for edge cases. We built what Hillary needs, not what looks impressive in a portfolio.
 
 ---
 
@@ -62,7 +62,7 @@ This system helps Hillary sell $30-50/lb artisan cheese by finding high-probabil
 - **Pre-set business rules** - Filters for $20+ entrees, upscale signals, cheese-friendly cuisines
 - **Text-to-speech** - Listen to pitches hands-free while walking (browser built-in, $0 cost)
 - **Voice notes** - Dictate visit outcomes, saved permanently in localStorage
-- **Pitch refinement** - 3 persona-based adaptations (Chef, Manager, Gatekeeper)
+- **Pitch refinement** - 4 persona-based adaptations (Walking, Chef, Manager, Gatekeeper)
 - **Micro-refinements** - 5 polish options (Shorten, Expand, Casual, Formal, Strong Opener)
 - **Save & reuse** - Store perfected pitches in localStorage for return visits
 
@@ -160,7 +160,7 @@ This system helps Hillary sell $30-50/lb artisan cheese by finding high-probabil
 - **Page 2 (Refinement Screen):**
   - Restaurant summary at top
   - Load saved pitches section (if exist)
-  - 3 persona buttons for new generation
+  - 4 persona buttons for new generation (Walking, Chef, Manager, Host)
   - Refined pitch display area
   - 5 micro-refinement buttons
   - Save pitch button

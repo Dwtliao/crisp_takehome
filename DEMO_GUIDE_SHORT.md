@@ -101,7 +101,7 @@
 - `backend/google_places_client.py` — menu data extraction from reviews
 
 **Not worth scrutiny:**
-- `frontend/index.html` — intentionally vanilla/simple, UI scaffolding only, no engineering pretensions here
+- `frontend/index.html` + `style.css` + `app.js` — intentionally vanilla/simple, split for maintainability, no engineering pretensions here
 
 ---
 

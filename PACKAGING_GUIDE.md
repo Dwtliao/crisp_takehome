@@ -76,7 +76,9 @@ happy_pastures_demo/
 │   ├── cheese_products.py
 │   └── config.py
 ├── frontend/                     # Frontend web app
-│   └── index.html
+│   ├── index.html
+│   ├── style.css
+│   └── app.js
 ├── tests/                        # Test scripts
 ├── .env                          # ⚠️ API KEYS (keep secure!)
 ├── requirements.txt              # Python dependencies

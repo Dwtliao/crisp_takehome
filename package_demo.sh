@@ -23,8 +23,6 @@ echo "📋 Copying project files..."
 # Core application files
 cp -r backend "$TEMP_DIR/"
 cp -r frontend "$TEMP_DIR/"
-cp -r tests "$TEMP_DIR/" 2>/dev/null || echo "   No tests directory found, skipping..."
-
 # Scripts and configuration
 cp requirements.txt "$TEMP_DIR/"
 
@@ -164,8 +162,9 @@ happy_pastures_demo/
 │   ├── sales_pitch_generator.py
 │   └── cheese_products.py
 ├── frontend/            # Web interface
-│   └── index.html       # Single-page app
-├── tests/               # Test scripts
+│   ├── index.html       # HTML structure
+│   ├── style.css        # All CSS styles
+│   └── app.js           # All JavaScript
 ├── venv/                # Virtual environment (created by setup_demo.sh)
 ├── .env                 # API keys (KEEP SECURE!)
 ├── requirements.txt     # Python dependencies

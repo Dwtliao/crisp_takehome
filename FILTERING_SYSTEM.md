@@ -34,7 +34,7 @@ This document explains the intelligent filtering system that prevents Hillary fr
 
 ### Layer 2: Rejection Learning System (Adaptive)
 
-**Location:** `frontend/index.html` (localStorage)
+**Location:** `frontend/app.js` (localStorage)
 
 **What it does:** Remembers Hillary's rejections and never shows them again.
 
@@ -120,7 +120,7 @@ Found 18 prospects (sorted by distance) • 6 filtered, 3 previously rejected
 
 **Bonus feature:** Saves last 5 searched addresses
 
-**Location:** `frontend/index.html` (localStorage)
+**Location:** `frontend/app.js` (localStorage)
 
 **Features:**
 - Automatically saves after successful geocoding
@@ -259,7 +259,7 @@ searchRestaurants(lat, lon, forceRefresh = true)
 
 **NEW Feature:** Hands-free pitch listening and visit notes
 
-**Location:** `frontend/index.html` (localStorage + Web Speech API)
+**Location:** `frontend/app.js` (localStorage + Web Speech API)
 
 ### Text-to-Speech (TTS)
 **What it does:** Converts sales pitches to audio so Hillary can listen while walking
@@ -338,7 +338,7 @@ After viewing the original pitch, Hillary can refine it for specific audiences:
 
 **Page 2: Refinement Screen**
 - Restaurant summary
-- 3 persona buttons
+- 4 persona buttons (Walking, Chef, Manager, Host)
 - Refined pitch with TTS at top
 - "Try Different Persona" and "Back to Original" navigation
 
@@ -590,7 +590,7 @@ EXCLUDED_NAME_KEYWORDS = {
 ```
 
 ### Frontend blacklist (Layer 2):
-Edit `frontend/index.html`:
+Edit `frontend/app.js`:
 ```javascript
 const RESTAURANT_BLACKLIST = [
     'royal thai',
